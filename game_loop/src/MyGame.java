@@ -13,6 +13,7 @@ public class MyGame {
     }
 
     public void run() throws IOException {
+        System.out.print("[cmd:] ");
         while (true) {
             try{
                 int availableInput = System.in.available();
@@ -32,6 +33,7 @@ public class MyGame {
     }
 
     public void processInput(int availableInput) throws IOException {
+        System.out.print("[cmd:] ");
         StringBuilder string = new StringBuilder();
         for (int i = 0; i < availableInput; i++){
             char nextInput = (char) System.in.read();
