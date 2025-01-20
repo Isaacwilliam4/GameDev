@@ -33,7 +33,6 @@ public class MyGame {
     }
 
     public void processInput(int availableInput) throws IOException {
-        System.out.print("[cmd:] ");
         StringBuilder string = new StringBuilder();
         for (int i = 0; i < availableInput; i++){
             char nextInput = (char) System.in.read();
@@ -62,6 +61,7 @@ public class MyGame {
         else{
             System.out.println("Invalid command");
         }
+        System.out.print("[cmd:] ");
     }
 
     public void update(long elapsedTime){
@@ -84,7 +84,7 @@ public class MyGame {
     }
 
     public void render(Event e){
-        System.out.printf("Event: %s, (%d Remaining)", e.name, e.times);
+        System.out.printf("\nEvent: %s, (%d Remaining)\n", e.name, e.times);
     }
 
 
