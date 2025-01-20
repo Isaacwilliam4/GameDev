@@ -5,11 +5,15 @@ import java.util.Date;
 import java.util.HashMap;
 
 public class MyGame {
-    private HashMap<String, Event> events = new HashMap<>();
-    private long startTime = new Date().getTime();
+    private HashMap<String, Event> events;
+    private long previousTime;
+    private StringBuilder input;
 
     public void initialize() {
         System.out.println("GameLoop Demo Initializing...");
+        previousTime = new Date().getTime();
+        events = new HashMap<>();
+        input = new StringBuilder();
     }
 
     public void run() throws IOException {
@@ -22,8 +26,8 @@ public class MyGame {
                 }
 
                 long currentTime = new Date().getTime();
-                long elapsedTime = currentTime - startTime;
-                startTime = currentTime;
+                long elapsedTime = currentTime - previousTime;
+                previousTime = currentTime;
                 update(elapsedTime);
             }
             catch(IOException e){
@@ -32,33 +36,38 @@ public class MyGame {
         }
     }
 
-    public void processInput(int availableInput) throws IOException {
-        StringBuilder string = new StringBuilder();
-        for (int i = 0; i < availableInput; i++){
-            char nextInput = (char) System.in.read();
-            string.append(nextInput);
-        }
+    public void processInput(int availableInput){
+        try{
+            for (int i = 0; i < availableInput; i++){
+                char nextInput = (char) System.in.read();
+                input.append(nextInput);
+            }
+            char lastChar = input.charAt(input.length()-1);
 
-        String cleanString = string.toString().replaceAll("\n","");
-        String[] args = cleanString.split(" ");
+            if(lastChar != '\n'){
+                return;
+            }
 
-        if (args[0].equals("quit")){
-            System.exit(0);
-        }
+            String cleanString = input.toString().replaceAll("\n","");
+            input = new StringBuilder();
+            String[] args = cleanString.split(" ");
 
-        if (args[0].equals("create") && args[1].equals("event")){
-            try{
+            if (args[0].equals("quit")){
+                System.exit(0);
+            }
+
+            if (args[0].equals("create") && args[1].equals("event")){
                 String name = args[2];
                 double interval = Double.parseDouble(args[3]);
                 int times = Integer.parseInt(args[4]);
                 Event event = new Event(name, interval, times);
                 events.put(name, event);
             }
-            catch(Exception e){
-                System.out.println(e.getMessage());
+            else{
+                System.out.println("Invalid command");
             }
         }
-        else{
+        catch(Exception e){
             System.out.println("Invalid command");
         }
         System.out.print("[cmd:] ");
@@ -82,10 +91,8 @@ public class MyGame {
             }
         }
     }
-
     public void render(Event e){
-        System.out.printf("\nEvent: %s, (%d Remaining)\n", e.name, e.times);
+        System.out.printf("\n\tEvent: %s (%d Remaining)\n", e.name, e.times);
+        System.out.print("[cmd:] ");
     }
-
-
 }
