@@ -1,11 +1,12 @@
-import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 import java.util.HashMap;
 
 public class MyGame {
     private HashMap<String, Event> events;
+    private HashMap<String, Event> renderEvents;
     private long previousTime;
     private StringBuilder input;
 
@@ -13,30 +14,37 @@ public class MyGame {
         System.out.println("GameLoop Demo Initializing...");
         previousTime = new Date().getTime();
         events = new HashMap<>();
+        renderEvents = new HashMap<>();
         input = new StringBuilder();
     }
 
-    public void run() throws IOException {
-        System.out.print("[cmd:] ");
+    private void printCommand(){
+        System.out.print("[cmd:] " + input.toString());
+    }
+
+    public void run(){
+        printCommand();
         while (true) {
             try{
                 int availableInput = System.in.available();
                 if (availableInput > 0){
                     processInput(availableInput);
                 }
-
                 long currentTime = new Date().getTime();
                 long elapsedTime = currentTime - previousTime;
                 previousTime = currentTime;
                 update(elapsedTime);
+                render();
             }
-            catch(IOException e){
-                throw new IOException(e.getMessage());
+            catch(Exception e){
+                input = new StringBuilder();
+                System.out.println("Invalid command");
+                printCommand();
             }
         }
     }
 
-    public void processInput(int availableInput){
+    public void processInput(int availableInput) throws Exception {
         try{
             for (int i = 0; i < availableInput; i++){
                 char nextInput = (char) System.in.read();
@@ -64,16 +72,17 @@ public class MyGame {
                 events.put(name, event);
             }
             else{
-                System.out.println("Invalid command");
+                throw new Exception("Invalid command");
             }
         }
         catch(Exception e){
-            System.out.println("Invalid command");
+            throw new Exception(e.getMessage());
         }
-        System.out.print("[cmd:] ");
+        printCommand();
     }
 
     public void update(long elapsedTime){
+        List<String> keysToRemove = new ArrayList<>();
         for(String key: events.keySet()){
             Event e = events.get(key);
             double newTime = e.currInterval - elapsedTime;
@@ -82,17 +91,24 @@ public class MyGame {
             }
             else{
                 e.times--;
-                render(e);
+                renderEvents.put(key, e);
                 e.currInterval = e.interval + newTime;
             }
 
             if (e.times <= 0){
-                events.remove(key);
+                keysToRemove.add(key);
             }
         }
+        for (String key: keysToRemove){
+            events.remove(key);
+        }
     }
-    public void render(Event e){
-        System.out.printf("\n\tEvent: %s (%d Remaining)\n", e.name, e.times);
-        System.out.print("[cmd:] ");
+    public void render(){
+        for (String key: renderEvents.keySet()){
+            Event e = renderEvents.get(key);
+            System.out.printf("\n\tEvent: %s (%d Remaining)\n", e.name, e.times);
+            printCommand();
+        }
+        renderEvents.clear();
     }
 }
