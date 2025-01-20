@@ -84,7 +84,7 @@ public class MyGame {
     }
 
     public void render(Event e){
-        System.out.printf("Event: %s, %d events left", e.name, e.times);
+        System.out.printf("Event: %s, (%d Remaining)", e.name, e.times);
     }
 
 
