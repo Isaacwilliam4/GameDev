@@ -108,13 +108,7 @@ public class MyGame {
         for (String key: renderEvents.keySet()){
             String formatString = "";
             Event e = renderEvents.get(key);
-            if (e.newEvent){
-                formatString = String.format("\tEvent: %s (%d Remaining)", e.name, e.times);
-                e.newEvent = false;
-            }
-            else{
-                formatString = String.format("\n\tEvent: %s (%d Remaining)", e.name, e.times);
-            }
+            formatString = String.format("\n\tEvent: %s (%d Remaining)", e.name, e.times);
             System.out.println(formatString);
             consoleOutputted = false;
         }
