@@ -9,6 +9,7 @@ public class MyGame {
     private HashMap<String, Event> renderEvents;
     private long previousTime;
     private StringBuilder input;
+    private boolean consoleOutputted = false;
 
     public void initialize() {
         System.out.println("GameLoop Demo Initializing...");
@@ -19,11 +20,11 @@ public class MyGame {
     }
 
     private void printCommand(){
-        System.out.print("[cmd:] " + input.toString());
+        String formatString = String.format("[cmd:] %s", input.toString());
+        System.out.print(formatString);
     }
 
     public void run(){
-        printCommand();
         while (true) {
             try{
                 int availableInput = System.in.available();
@@ -39,7 +40,7 @@ public class MyGame {
             catch(Exception e){
                 input = new StringBuilder();
                 System.out.println("Invalid command");
-                printCommand();
+                consoleOutputted = false;
             }
         }
     }
@@ -78,10 +79,10 @@ public class MyGame {
         catch(Exception e){
             throw new Exception(e.getMessage());
         }
-        printCommand();
     }
 
     public void update(long elapsedTime){
+        renderEvents.clear();
         List<String> keysToRemove = new ArrayList<>();
         for(String key: events.keySet()){
             Event e = events.get(key);
@@ -105,10 +106,21 @@ public class MyGame {
     }
     public void render(){
         for (String key: renderEvents.keySet()){
+            String formatString = "";
             Event e = renderEvents.get(key);
-            System.out.printf("\n\tEvent: %s (%d Remaining)\n", e.name, e.times);
-            printCommand();
+            if (e.newEvent){
+                formatString = String.format("\tEvent: %s (%d Remaining)", e.name, e.times);
+                e.newEvent = false;
+            }
+            else{
+                formatString = String.format("\n\tEvent: %s (%d Remaining)", e.name, e.times);
+            }
+            System.out.println(formatString);
+            consoleOutputted = false;
         }
-        renderEvents.clear();
+        if (!consoleOutputted){
+            printCommand();
+            consoleOutputted = true;
+        }
     }
 }
