@@ -27,10 +27,7 @@ public class MyGame {
     public void run(){
         while (true) {
             try{
-                int availableInput = System.in.available();
-                if (availableInput > 0){
-                    processInput(availableInput);
-                }
+                processInput();
                 long currentTime = new Date().getTime();
                 long elapsedTime = currentTime - previousTime;
                 previousTime = currentTime;
@@ -45,40 +42,44 @@ public class MyGame {
         }
     }
 
-    public void processInput(int availableInput) throws Exception {
-        try{
-            for (int i = 0; i < availableInput; i++){
-                char nextInput = (char) System.in.read();
-                input.append(nextInput);
-            }
-            char lastChar = input.charAt(input.length()-1);
+    public void processInput() throws Exception {
+        int availableInput = System.in.available();
+        if (availableInput > 0) {
+            try{
+                for (int i = 0; i < availableInput; i++){
+                    char nextInput = (char) System.in.read();
+                    input.append(nextInput);
+                }
+                char lastChar = input.charAt(input.length()-1);
 
-            if(lastChar != '\n'){
-                return;
-            }
+                if(lastChar != '\n'){
+                    return;
+                }
 
-            String cleanString = input.toString().replaceAll("\n","");
-            input = new StringBuilder();
-            String[] args = cleanString.split(" ");
+                String cleanString = input.toString().replaceAll("\n","");
+                input = new StringBuilder();
+                String[] args = cleanString.split(" ");
 
-            if (args[0].equals("quit")){
-                System.exit(0);
-            }
+                if (args[0].equals("quit")){
+                    System.exit(0);
+                }
 
-            if (args[0].equals("create") && args[1].equals("event")){
-                String name = args[2];
-                double interval = Double.parseDouble(args[3]);
-                int times = Integer.parseInt(args[4]);
-                Event event = new Event(name, interval, times);
-                events.put(name, event);
+                if (args[0].equals("create") && args[1].equals("event")){
+                    String name = args[2];
+                    double interval = Double.parseDouble(args[3]);
+                    int times = Integer.parseInt(args[4]);
+                    Event event = new Event(name, interval, times);
+                    events.put(name, event);
+                }
+                else{
+                    throw new Exception("Invalid command");
+                }
             }
-            else{
-                throw new Exception("Invalid command");
+            catch(Exception e){
+                throw new Exception(e.getMessage());
             }
         }
-        catch(Exception e){
-            throw new Exception(e.getMessage());
-        }
+
     }
 
     public void update(long elapsedTime){
