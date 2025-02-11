@@ -1,28 +1,119 @@
 import com.sun.tools.javac.Main;
 import edu.usu.graphics.*;
 
+import java.util.*;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
     private MazeCell[][] maze;
-
+    private final int mazeSize = 3;
     private MazeCell characterLocation;
+    private Set<List<Integer>> frontier;
+    private Set<List<Integer>> notInMaze;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
     }
 
     public void initialize() {
-        maze = new MazeCell[3][3];
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 3; y++) {
+        maze = new MazeCell[mazeSize][mazeSize];
+        notInMaze = new HashSet<>();
+        frontier = new HashSet<>();
+
+        for (int x = 0; x < mazeSize; x++) {
+            for (int y = 0; y < mazeSize; y++) {
                 maze[x][y] = new MazeCell(x,y);
+                notInMaze.add(List.of(x, y));
             }
         }
-        characterLocation = maze[0][0];
+
+        List<Integer> currentBlockIdx = List.of(0,0);
+        notInMaze.remove(currentBlockIdx);
+
+        Random rand = new Random();
+
+        while (!notInMaze.isEmpty()) {
+            HashMap<String, List<Integer>> neighbors = getNeighbors(currentBlockIdx);
+            HashMap<String, List<Integer>> frontier = new HashMap<>();
+            for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
+                if (notInMaze.contains(entry.getValue())) {
+                    frontier.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            int randNum = rand.nextInt(frontier.size());
+            int idx = 0;
+            Map.Entry<String, List<Integer>> nextBlock = null;
+
+            for (Map.Entry<String, List<Integer>> entry: frontier.entrySet()) {
+                if (randNum == idx){
+                    nextBlock = entry;
+                }
+            }
+
+            List<Integer> nextBlockIdx = nextBlock.getValue();
+            notInMaze.remove(nextBlockIdx);
+
+            if (nextBlock.getKey().equals("Top")){
+                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+                        .setTop(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+                        .setBottom(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+            }
+            else if (nextBlock.getKey().equals("Bottom")){
+                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+                        .setBottom(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+                        .setTop(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+            }
+            else if (nextBlock.getKey().equals("Left")){
+                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+                        .setLeft(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+                        .setRight(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+            }
+            else if (nextBlock.getKey().equals("Right")){
+                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+                        .setRight(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+                        .setLeft(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+            }
+
+
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
     }
 
+    private HashMap<String, List<Integer>> getNeighbors(List<Integer> block) {
+        HashMap<String, List<Integer>> neighbors = new HashMap<>();
+        if ((block.getFirst() - 1) >= 0){
+            neighbors.put("Left", (List.of(block.getFirst() - 1, block.get(1))));
+        }
+        if ((block.getFirst() + 1) < mazeSize){
+            neighbors.put("Right", (List.of(block.getFirst() + 1, block.get(1))));
+        }
+        if ((block.getLast() - 1) >= 0){
+            neighbors.put("Bottom", List.of(block.getLast() - 1, block.get(1))));
+        }
+        if ((block.getLast() + 1) < mazeSize){
+            neighbors.put("Top", List.of(block.getLast() + 1, block.get(1))));
+        }
+        return neighbors;
+    }
     public void shutdown() {
     }
 

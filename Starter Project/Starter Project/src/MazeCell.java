@@ -24,6 +24,18 @@ public class MazeCell {
     public void setRow(int row) {
         this.row = row;
     }
+    public void setTop(MazeCell top) {
+        this.top = top;
+    }
+    public void setBottom(MazeCell bottom) {
+        this.bottom = bottom;
+    }
+    public void setLeft(MazeCell left) {
+        this.left = left;
+    }
+    public void setRight(MazeCell right) {
+        this.right = right;
+    }
     public MazeCell getBottom(){
         return bottom;
     }
