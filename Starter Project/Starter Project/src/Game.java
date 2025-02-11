@@ -14,7 +14,13 @@ public class Game {
     }
 
     public void initialize() {
-
+        maze = new MazeCell[3][3];
+        for (int x = 0; x < 3; x++) {
+            for (int y = 0; y < 3; y++) {
+                maze[x][y] = new MazeCell(x,y);
+            }
+        }
+        characterLocation = maze[0][0];
     }
 
     public void shutdown() {
@@ -45,7 +51,7 @@ public class Game {
         }
 
         //Move Character
-        characterLocation = characterLocation.getBottom();
+//        characterLocation = characterLocation.getBottom();
     }
 
     private void update(double elapsedTime) {
@@ -56,7 +62,7 @@ public class Game {
 
         for (var row: maze){
             for (var cell:row){
-
+                renderCell(cell);
             }
         }
         graphics.end();
@@ -68,10 +74,9 @@ public class Game {
         final float CELL_SIZE = 1 / 3.0f;
         final float CELL_WALL_THICKNESS = CELL_SIZE * 0.01f;
 
-
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
-            float top = MAZE_TOP + cell.getColumn() * CELL_SIZE;
+            float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
             Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.YELLOW);
@@ -92,8 +97,8 @@ public class Game {
         }
         if (cell.getRight() == null){
             float left = MAZE_LEFT + (cell.getColumn() + 1) * CELL_SIZE;
-            float top = MAZE_TOP + cell.getCOlumn() * CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
+            float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
+            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_SIZE);
 
             graphics.draw(r, Color.YELLOW);
         }

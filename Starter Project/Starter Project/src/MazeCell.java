@@ -4,8 +4,26 @@ public class MazeCell {
     private MazeCell left;
     private MazeCell right;
 
-    public MazeCell() {}
+    private int column;
+    private int row;
 
+    public MazeCell(int row, int column) {
+        this.column = column;
+        this.row = row;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+    public void setColumn(int column) {
+        this.column = column;
+    }
+    public int getRow() {
+        return row;
+    }
+    public void setRow(int row) {
+        this.row = row;
+    }
     public MazeCell getBottom(){
         return bottom;
     }
