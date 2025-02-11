@@ -1,7 +1,12 @@
 import com.sun.tools.javac.Main;
 import edu.usu.graphics.*;
+import edu.usu.graphics.Color;
+import edu.usu.graphics.Graphics2D;
+import edu.usu.graphics.Rectangle;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -29,88 +34,156 @@ public class Game {
             }
         }
 
-        List<Integer> currentBlockIdx = List.of(0,0);
-        notInMaze.remove(currentBlockIdx);
 
-        Random rand = new Random();
+        maze[0][0].setRight(maze[0][1]);
+        maze[0][1].setLeft(maze[0][0]);
 
-        while (!notInMaze.isEmpty()) {
-            HashMap<String, List<Integer>> neighbors = getNeighbors(currentBlockIdx);
-            HashMap<String, List<Integer>> frontier = new HashMap<>();
-            for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
-                if (notInMaze.contains(entry.getValue())) {
-                    frontier.put(entry.getKey(), entry.getValue());
-                }
+        maze[0][0].setBottom(maze[1][0]);
+        maze[1][0].setTop(maze[0][0]);
+
+//        List<Integer> currentBlockIdx = List.of(0,0);
+//
+//        Random rand = new Random();
+//        HashMap<String, List<Integer>> frontier = new HashMap<>();
+//
+//        while (!notInMaze.isEmpty()) {
+//            notInMaze.remove(currentBlockIdx);
+//            HashMap<String, List<Integer>> neighbors = getNeighbors(currentBlockIdx);
+//            for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
+//                if (notInMaze.contains(entry.getValue())) {
+//                    frontier.put(entry.getKey(), entry.getValue());
+//                }
+//            }
+//
+//            int randNum = rand.nextInt(frontier.size());
+//            int idx = 0;
+//            Map.Entry<String, List<Integer>> nextBlock = null;
+//
+//            for (Map.Entry<String, List<Integer>> entry: frontier.entrySet()) {
+//                if (randNum == idx){
+//                    nextBlock = entry;
+//                    break;
+//                }
+//                idx++;
+//            }
+//
+//            List<Integer> nextBlockIdx = nextBlock.getValue();
+//
+//            switch (nextBlock.getKey()) {
+//                case "Top" -> {
+//                    maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+//                            .setTop(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+//                    maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+//                            .setBottom(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+//                }
+//                case "Bottom" -> {
+//                    maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+//                            .setBottom(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+//                    maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+//                            .setTop(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+//                }
+//                case "Left" -> {
+//                    maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+//                            .setLeft(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+//                    maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+//                            .setRight(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+//                }
+//                case "Right" -> {
+//                    maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
+//                            .setRight(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
+//                    maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
+//                            .setLeft(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
+//                }
+//            }
+//            frontier.remove(nextBlock.getKey());
+//            currentBlockIdx = nextBlockIdx;
+//
+//            render(0);
+//        }
+        cliRender();
+
+    }
+
+    private void cliRender(){
+        StringBuilder[][] cliMaze = new StringBuilder[mazeSize][mazeSize];
+        for (int x = 0; x < cliMaze.length; x++) {
+            for (int y = 0; y < cliMaze[x].length; y++) {
+                cliMaze[x][y] = new StringBuilder();
             }
-
-            int randNum = rand.nextInt(frontier.size());
-            int idx = 0;
-            Map.Entry<String, List<Integer>> nextBlock = null;
-
-            for (Map.Entry<String, List<Integer>> entry: frontier.entrySet()) {
-                if (randNum == idx){
-                    nextBlock = entry;
-                }
-            }
-
-            List<Integer> nextBlockIdx = nextBlock.getValue();
-            notInMaze.remove(nextBlockIdx);
-
-            if (nextBlock.getKey().equals("Top")){
-                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
-                        .setTop(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
-                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
-                        .setBottom(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
-            }
-            else if (nextBlock.getKey().equals("Bottom")){
-                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
-                        .setBottom(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
-                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
-                        .setTop(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
-            }
-            else if (nextBlock.getKey().equals("Left")){
-                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
-                        .setLeft(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
-                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
-                        .setRight(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
-            }
-            else if (nextBlock.getKey().equals("Right")){
-                maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]
-                        .setRight(maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]);
-                maze[nextBlockIdx.getFirst()][nextBlockIdx.getLast()]
-                        .setLeft(maze[currentBlockIdx.getFirst()][currentBlockIdx.getLast()]);
-            }
-
-
-
-
-
-
-
-
-
         }
 
+        for (var row: maze){
+            for (var cell:row){
+                cliRenderCell(cell, cliMaze);
+            }
+        }
 
+        StringBuilder cliMazeText = new StringBuilder();
+        for (int x = 0; x < cliMaze.length; x++) {
+            for (int y = 0; y < cliMaze[0].length; y++) {
+                cliMazeText.append(cliMaze[x][y].toString());
+            }
+            cliMazeText.append("\n");
+        }
 
+        replaceAll(cliMazeText, "____", "______");
+        System.out.println(cliMazeText);
+        System.out.println("Success!");
+    }
 
+    private static void replaceAll(StringBuilder builder, String from, String to) {
+        int index = builder.indexOf(from);
+        while (index != -1) {
+            builder.replace(index, index + from.length(), to);
+            index += to.length(); // Move to the end of the replacement
+            index = builder.indexOf(from, index);
+        }
+    }
 
-
+    private void cliRenderCell(MazeCell cell, StringBuilder[][] cliMaze) {
+        if (cell.getTop() == null){
+            StringBuilder builder = cliMaze[cell.getRow()][cell.getColumn()];
+            if (builder.isEmpty()){
+                builder.append("__");
+            }
+            else{
+                if (!builder.toString().contains("__")){
+                    builder.insert(1,"__");
+                }
+            }
+        }
+        if (cell.getBottom() == null){
+            StringBuilder builder = cliMaze[cell.getRow()][cell.getColumn()];
+            if (builder.isEmpty()){
+                builder.append("__");
+            }
+            else{
+                if (!builder.toString().contains("__")){
+                    builder.insert(1,"__");
+                }
+            }
+        }
+        if (cell.getLeft() == null){
+            cliMaze[cell.getRow()][cell.getColumn()].insert(0,"|");
+        }
+        if (cell.getRight() == null){
+            cliMaze[cell.getRow()][cell.getColumn()].append("|");
+        }
     }
 
     private HashMap<String, List<Integer>> getNeighbors(List<Integer> block) {
         HashMap<String, List<Integer>> neighbors = new HashMap<>();
         if ((block.getFirst() - 1) >= 0){
-            neighbors.put("Left", (List.of(block.getFirst() - 1, block.get(1))));
+            neighbors.put("Left", List.of(block.getFirst() - 1, block.get(1)));
         }
         if ((block.getFirst() + 1) < mazeSize){
-            neighbors.put("Right", (List.of(block.getFirst() + 1, block.get(1))));
+            neighbors.put("Right", List.of(block.getFirst() + 1, block.get(1)));
         }
         if ((block.getLast() - 1) >= 0){
-            neighbors.put("Bottom", List.of(block.getLast() - 1, block.get(1))));
+            neighbors.put("Bottom", List.of(block.getLast() - 1, block.get(1)));
         }
         if ((block.getLast() + 1) < mazeSize){
-            neighbors.put("Top", List.of(block.getLast() + 1, block.get(1))));
+            neighbors.put("Top", List.of(block.getLast() + 1, block.get(1)));
         }
         return neighbors;
     }
