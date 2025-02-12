@@ -108,7 +108,7 @@ public class Game {
         StringBuilder[][] cliMaze = new StringBuilder[mazeSize][mazeSize];
         for (int x = 0; x < cliMaze.length; x++) {
             for (int y = 0; y < cliMaze[x].length; y++) {
-                cliMaze[x][y] = new StringBuilder();
+                cliMaze[x][y] = new StringBuilder("    ");
             }
         }
 
@@ -126,7 +126,7 @@ public class Game {
             cliMazeText.append("\n");
         }
 
-        replaceAll(cliMazeText, "____", "______");
+//        replaceAll(cliMazeText, "____", "______");
         System.out.println(cliMazeText);
         System.out.println("Success!");
     }
@@ -142,32 +142,20 @@ public class Game {
 
     private void cliRenderCell(MazeCell cell, StringBuilder[][] cliMaze) {
         if (cell.getTop() == null){
-            StringBuilder builder = cliMaze[cell.getRow()][cell.getColumn()];
-            if (builder.isEmpty()){
-                builder.append("__");
-            }
-            else{
-                if (!builder.toString().contains("__")){
-                    builder.insert(1,"__");
-                }
+            if ((cell.getRow() - 1) >= 0){
+                StringBuilder builder = cliMaze[cell.getRow()-1][cell.getColumn()];
+                builder.replace(1, 3,"__");
             }
         }
         if (cell.getBottom() == null){
             StringBuilder builder = cliMaze[cell.getRow()][cell.getColumn()];
-            if (builder.isEmpty()){
-                builder.append("__");
-            }
-            else{
-                if (!builder.toString().contains("__")){
-                    builder.insert(1,"__");
-                }
-            }
+            builder.replace(1, 3,"__");
         }
         if (cell.getLeft() == null){
-            cliMaze[cell.getRow()][cell.getColumn()].insert(0,"|");
+            cliMaze[cell.getRow()][cell.getColumn()].replace(0, 1,"|");
         }
         if (cell.getRight() == null){
-            cliMaze[cell.getRow()][cell.getColumn()].append("|");
+            cliMaze[cell.getRow()][cell.getColumn()].replace(3, 4,"|");
         }
     }
 
