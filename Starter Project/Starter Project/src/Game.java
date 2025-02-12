@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Game {
     private final Graphics2D graphics;
     private MazeCell[][] maze;
-    private final int mazeSize = 3;
+    private final int mazeSize = 20;
     private MazeCell characterLocation;
     private Set<List<Integer>> frontier;
     private Set<List<Integer>> notInMaze;
@@ -98,9 +98,6 @@ public class Game {
             }
             notInMaze.remove(randomNeighborIdx);
             frontier.remove(randomNeighborIdx);
-
-            cliRender();
-            System.out.println("----------------------");
         }
 
 
@@ -255,10 +252,11 @@ public class Game {
     }
 
     private void renderCell(MazeCell cell){
+        final float fMazeSize = (float) mazeSize;
         final float MAZE_LEFT = -0.5f;
         final float MAZE_TOP = -0.5f;
-        final float CELL_SIZE = 1 / 3.0f;
-        final float CELL_WALL_THICKNESS = CELL_SIZE * 0.01f;
+        final float CELL_SIZE = 1 / fMazeSize;
+        final float CELL_WALL_THICKNESS = 0.005f;
 
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
