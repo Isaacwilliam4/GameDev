@@ -34,79 +34,70 @@ public class Game {
             }
         }
 
+        List<Integer> startCell = List.of(0,0);
+        notInMaze.remove(startCell);
+        //Add cell to maze, add its neighbors to the frontier
+        notInMaze.remove(startCell);
 
-//        maze[0][0].setRight(maze[0][1]);
-//        maze[0][1].setLeft(maze[0][0]);
-//
-//        maze[0][0].setBottom(maze[1][0]);
-//        maze[1][0].setTop(maze[0][0]);
-
-        Random rand = new Random();
-        HashMap<String, List<Integer>> frontier = new HashMap<>();
-        frontier.put("Top", List.of(0,0));
+        HashMap<String, List<Integer>> neighbors = getNeighbors(startCell);
+        for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
+            frontier.add(entry.getValue());
+        }
 
         while (!notInMaze.isEmpty()) {
-            //Randomly select a cell from the frontier to add to the maze
-            Map.Entry<String, List<Integer>> addedCell = getRandomFromHashSet(frontier);
-
-            //Add cell to maze, add its neighbors to the frontier
-            notInMaze.remove(addedCell.getValue());
-            HashMap<String, List<Integer>> neighbors = getNeighbors(addedCell.getValue());
-            for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
-                if (notInMaze.contains(entry.getValue())) {
-                    frontier.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            //Now select a cell from the frontier
-            Map.Entry<String, List<Integer>> frontierCell = getRandomFromHashSet(frontier);
+            //Now select a cell from the frontier and add it to the maze
+            List<Integer> frontierCell = getRandomFromHashSet(frontier);
+            notInMaze.remove(frontierCell);
+            frontier.remove(frontierCell);
 
             //Get neighbors of selected frontier cell
-            HashMap<String, List<Integer>> frontierNeighbors = getNeighbors(frontierCell.getValue());
+            HashMap<String, List<Integer>> frontierNeighbors = getNeighbors(frontierCell);
 
-            //Get the neighbors of the frontier cell that are in the maze
+            //Get the neighbors of the frontier cell that are in the maze, add neighbors not in maze to frontier
             HashMap<String, List<Integer>> frontierNeighborsInMaze = new HashMap<>();
             for (Map.Entry<String, List<Integer>> entry: frontierNeighbors.entrySet()) {
                 if (!notInMaze.contains(entry.getValue())) {
                     frontierNeighborsInMaze.put(entry.getKey(), entry.getValue());
                 }
+                else{
+                    frontier.add(entry.getValue());
+                }
             }
 
             //Randomly select one of the frontier neighbors in the maze to connect to
-            Map.Entry<String, List<Integer>> randomNeighbor = getRandomFromHashSet(frontierNeighbors);
+            Map.Entry<String, List<Integer>> randomNeighbor = getRandomFromHashMap(frontierNeighborsInMaze);
 
             //Now connect the frontier cell with that random neighbor
             List<Integer> randomNeighborIdx = randomNeighbor.getValue();
-            List<Integer> frontierCellIdx = frontierCell.getValue();
 
             switch (randomNeighbor.getKey()) {
                 case "Top" -> {
-                    maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
                             .setTop(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
                     maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setBottom(maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]);
+                            .setBottom(maze[frontierCell.getFirst()][frontierCell.getLast()]);
                 }
                 case "Bottom" -> {
-                    maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
                             .setBottom(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
                     maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setTop(maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]);
+                            .setTop(maze[frontierCell.getFirst()][frontierCell.getLast()]);
                 }
                 case "Left" -> {
-                    maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
                             .setLeft(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
                     maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setRight(maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]);
+                            .setRight(maze[frontierCell.getFirst()][frontierCell.getLast()]);
                 }
                 case "Right" -> {
-                    maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
                             .setRight(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
                     maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setLeft(maze[frontierCellIdx.getFirst()][frontierCellIdx.getLast()]);
+                            .setLeft(maze[frontierCell.getFirst()][frontierCell.getLast()]);
                 }
             }
-            notInMaze.remove(frontierCellIdx);
             notInMaze.remove(randomNeighborIdx);
+            frontier.remove(randomNeighborIdx);
 
             cliRender();
             System.out.println("----------------------");
@@ -115,7 +106,7 @@ public class Game {
 
     }
 
-    private static Map.Entry<String, List<Integer>> getRandomFromHashSet(HashMap<String, List<Integer>> set){
+    private static Map.Entry<String, List<Integer>> getRandomFromHashMap(HashMap<String, List<Integer>> set){
         Random rand = new Random();
         int randInt = rand.nextInt(set.size());
         int idx = 0;
@@ -124,6 +115,23 @@ public class Game {
         for (Map.Entry<String, List<Integer>> entry: set.entrySet()) {
             if (randInt == idx){
                 randCell = entry;
+                break;
+            }
+            idx++;
+        }
+
+        return randCell;
+    }
+
+    private static List<Integer> getRandomFromHashSet(Set<List<Integer>> set){
+        Random rand = new Random();
+        int randInt = rand.nextInt(set.size());
+        int idx = 0;
+        List<Integer> randCell = null;
+
+        for (List<Integer> value: set) {
+            if (randInt == idx){
+                randCell = value;
                 break;
             }
             idx++;
