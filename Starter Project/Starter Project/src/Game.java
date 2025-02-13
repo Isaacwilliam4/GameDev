@@ -20,7 +20,7 @@ public class Game {
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
     private final float CELL_SIZE = 1 / fMazeSize;
-    private final float CELL_WALL_THICKNESS = 0.003f;
+    private final float CELL_WALL_THICKNESS = 0.002f;
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
     private Texture circle;
@@ -87,6 +87,7 @@ public class Game {
         }
 
         characterLocation = maze[startLocation.getFirst()][startLocation.getLast()];
+        characterLocation.setVisited(true);
         List<Integer> startCell = List.of(0,0);
         notInMaze.remove(startCell);
         //Add cell to maze, add its neighbors to the frontier
@@ -438,11 +439,12 @@ public class Game {
         Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
         graphics.draw(r, Color.CORNFLOWER_BLUE);
 
+        float dotSize = CELL_WALL_THICKNESS*3;
 
         if (cell.isVisited()){
             left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
             top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
+            r = new Rectangle(left, top, dotSize, dotSize);
 
             graphics.draw(r, Color.YELLOW);
         }
@@ -450,7 +452,7 @@ public class Game {
         if (cell.isOnShortestPath()){
             left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
             top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
+            r = new Rectangle(left, top, dotSize, dotSize);
 
             graphics.draw(r, Color.BLUE);
         }
