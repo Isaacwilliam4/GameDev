@@ -334,6 +334,7 @@ public class Game {
     }
 
     private void update(double elapsedTime) {
+        updateShortestPath();
     }
 
     private void render(long window, double elapsedTime) {
@@ -350,17 +351,39 @@ public class Game {
     }
 
     private void updateShortestPath(){
-        HashMap<List<Integer>, ArrayList<MazeCell>> discovered = new HashMap<>();
-
-        while (!discovered.containsKey(endLocation)){
-
+        Queue<MazeCell> queue = new LinkedList<>();
+        MazeCell cell = characterLocation;
+        while (cell != maze[endLocation.getFirst()][endLocation.getLast()]){
+            if (cell.getTop() != null){
+                MazeCell nextCell = cell.getTop();
+                nextCell.setPrevious(cell);
+                queue.add(nextCell);
+            }
+            if (cell.getBottom() != null){
+                MazeCell nextCell = cell.getBottom();
+                nextCell.setPrevious(cell);
+                queue.add(nextCell);
+            }
+            if (cell.getRight() != null){
+                MazeCell nextCell = cell.getRight();
+                nextCell.setPrevious(cell);
+                queue.add(nextCell);
+            }
+            if (cell.getLeft() != null){
+                MazeCell nextCell = cell.getLeft();
+                nextCell.setPrevious(cell);
+                queue.add(nextCell);
+            }
+            cell = queue.remove();
         }
 
+        while (cell.getPrevious() != characterLocation){
+            cell.setOnShortestPath(true);
+            cell = cell.getPrevious();
+        }
     }
 
     private void renderCell(MazeCell cell){
-
-
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
@@ -398,6 +421,14 @@ public class Game {
             Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.YELLOW);
+        }
+
+        if (cell.isOnShortestPath()){
+            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            float top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
+
+            graphics.draw(r, Color.BLUE);
         }
     }
 }
