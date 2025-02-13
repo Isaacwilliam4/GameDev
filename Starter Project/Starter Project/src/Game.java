@@ -15,7 +15,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private final int mazeSize = 50;
+    private final int mazeSize = 3;
     private final float fMazeSize = (float) mazeSize;
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
@@ -38,13 +38,13 @@ public class Game {
     }
 
     public void initialize() {
+        circle = new Texture("resources/images/bluecircle.png");
+
         setupMaze();
         registerKeys();
     }
 
     private void registerKeys(){
-        circle = new Texture("resources/images/circle.jpg");
-
         // Register the inputs we want to have invoked
         inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> {
             moveUp(CELL_SIZE);
@@ -339,15 +339,7 @@ public class Game {
     private void processInput(double elapsedTime) {
         // Poll for window events: required in order for window, keyboard, etc events are captured.
         glfwPollEvents();
-
-//        // If user presses ESC, then exit the program
-//        if (glfwGetKey(graphics.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-//            glfwSetWindowShouldClose(graphics.getWindow(), true);
-//        }
         inputKeyboard.update(elapsedTime);
-
-        //Move Character
-//        characterLocation = characterLocation.getBottom();
     }
 
     private void update(double elapsedTime) {
