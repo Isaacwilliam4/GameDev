@@ -261,6 +261,7 @@ public class Game {
             rectCircle.top = rectCircle.top - distance;
             characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
         }
+        updatePaths();
     }
 
     private void moveDown(float distance) {
@@ -269,6 +270,7 @@ public class Game {
             rectCircle.top = rectCircle.top + distance;
             characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
         }
+        updatePaths();
     }
 
     private void moveLeft(float distance) {
@@ -277,7 +279,7 @@ public class Game {
             rectCircle.left = rectCircle.left - distance;
             characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
         }
-
+        updatePaths();
     }
 
     private void moveRight(float distance) {
@@ -286,6 +288,11 @@ public class Game {
             rectCircle.left = rectCircle.left + distance;
             characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
         }
+        updatePaths();
+    }
+
+    private void updatePaths(){
+        characterLocation.setVisited(true);
     }
 
     public void shutdown() {
@@ -348,6 +355,7 @@ public class Game {
             Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.YELLOW);
+
         }
         if (cell.getBottom() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
@@ -355,6 +363,7 @@ public class Game {
             Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.YELLOW);
+
         }
         if (cell.getLeft() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
@@ -367,6 +376,14 @@ public class Game {
             float left = MAZE_LEFT + (cell.getColumn() + 1) * CELL_SIZE;
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
             Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_SIZE);
+
+            graphics.draw(r, Color.YELLOW);
+        }
+
+        if (cell.isVisited()){
+            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            float top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.YELLOW);
         }

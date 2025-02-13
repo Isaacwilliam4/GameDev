@@ -6,11 +6,27 @@ public class MazeCell {
 
     private int column;
     private int row;
+    private boolean visited = false;
+    private boolean isOnShortestPath = false;
 
     public MazeCell(int row, int column) {
         this.column = column;
         this.row = row;
     }
+
+    public boolean isOnShortestPath() {
+        return isOnShortestPath;
+    }
+    public void setOnShortestPath(boolean onShortestPath) {
+        isOnShortestPath = onShortestPath;
+    }
+    public boolean isVisited() {
+        return visited;
+    }
+    public void setVisited(boolean visited) {
+        this.visited = visited;
+    }
+
 
     public int getColumn() {
         return column;
