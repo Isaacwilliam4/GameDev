@@ -7,6 +7,8 @@ import edu.usu.graphics.Rectangle;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import edu.usu.graphics.*;
+import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -14,18 +16,62 @@ public class Game {
     private final Graphics2D graphics;
     private MazeCell[][] maze;
     private final int mazeSize = 20;
+    private final Rectangle rectCircle = new Rectangle(-0.85f, -0.45f, 0.40f, 0.40f);
+    private Texture circle;
     private MazeCell characterLocation;
-    private Set<List<Integer>> frontier;
-    private Set<List<Integer>> notInMaze;
+    private final KeyboardInput inputKeyboard;
+    private static final float SPRITE_MOVE_RATE_PER_SECOND = 0.40f;    // world coords per second
+    private static final float SPRITE_ROTATE_RATE_PER_SECOND = (float) (Math.PI / 2); // radians per second
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
+        this.inputKeyboard = new KeyboardInput(graphics.getWindow());
     }
 
     public void initialize() {
+        setupMaze();
+        registerKeys();
+    }
+
+    private void registerKeys(){
+        circle = new Texture("resources/images/circle.jpg");
+
+        // Register the inputs we want to have invoked
+        inputKeyboard.registerCommand(GLFW_KEY_W, false, (double elapsedTime) -> {
+            moveUp((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_S, false, (double elapsedTime) -> {
+            moveDown((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_A, false, (double elapsedTime) -> {
+            moveLeft((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_D, false, (double elapsedTime) -> {
+            moveRight((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_UP, false, (double elapsedTime) -> {
+            moveUp((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_DOWN, false, (double elapsedTime) -> {
+            moveDown((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_LEFT, false, (double elapsedTime) -> {
+            moveLeft((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, false, (double elapsedTime) -> {
+            moveRight((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> {
+            glfwSetWindowShouldClose(graphics.getWindow(), true);
+        });
+    }
+
+    private void setupMaze(){
         maze = new MazeCell[mazeSize][mazeSize];
-        notInMaze = new HashSet<>();
-        frontier = new HashSet<>();
+        Set<List<Integer>> notInMaze = new HashSet<>();
+        Set<List<Integer>> frontier = new HashSet<>();
 
         for (int x = 0; x < mazeSize; x++) {
             for (int y = 0; y < mazeSize; y++) {
@@ -99,8 +145,6 @@ public class Game {
             notInMaze.remove(randomNeighborIdx);
             frontier.remove(randomNeighborIdx);
         }
-
-
     }
 
     private static Map.Entry<String, List<Integer>> getRandomFromHashMap(HashMap<String, List<Integer>> set){
@@ -206,6 +250,31 @@ public class Game {
         }
         return neighbors;
     }
+
+    private void moveUp(float distance) {
+        if (rectCircle.top > -0.5f) {
+            rectCircle.top = Math.max(rectCircle.top - distance, -0.5f);
+        }
+    }
+
+    private void moveDown(float distance) {
+        if ((rectCircle.top + rectCircle.height) < 0.5f) {
+            rectCircle.top = Math.min(rectCircle.top + distance, 0.5f);
+        }
+    }
+
+    private void moveLeft(float distance) {
+        if (rectCircle.left > -0.90f) {
+            rectCircle.left = Math.max(rectCircle.left - distance, -0.90f);
+        }
+    }
+
+    private void moveRight(float distance) {
+        if ((rectCircle.left + rectCircle.width) < 0.90f) {
+            rectCircle.left = Math.min(rectCircle.left + distance, 0.90f);
+        }
+    }
+
     public void shutdown() {
     }
 
@@ -213,6 +282,8 @@ public class Game {
         // Grab the first time
         double previousTime = glfwGetTime();
 
+        // Run the rendering loop until the user has attempted to close
+        // the window or has pressed the ESCAPE key.
         while (!graphics.shouldClose()) {
             double currentTime = glfwGetTime();
             double elapsedTime = currentTime - previousTime;    // elapsed time is in seconds
@@ -220,18 +291,20 @@ public class Game {
 
             processInput(elapsedTime);
             update(elapsedTime);
-            render(elapsedTime);
+            render(graphics.getWindow(), elapsedTime);
         }
     }
+
 
     private void processInput(double elapsedTime) {
         // Poll for window events: required in order for window, keyboard, etc events are captured.
         glfwPollEvents();
 
-        // If user presses ESC, then exit the program
-        if (glfwGetKey(graphics.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(graphics.getWindow(), true);
-        }
+//        // If user presses ESC, then exit the program
+//        if (glfwGetKey(graphics.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+//            glfwSetWindowShouldClose(graphics.getWindow(), true);
+//        }
+        inputKeyboard.update(elapsedTime);
 
         //Move Character
 //        characterLocation = characterLocation.getBottom();
@@ -240,7 +313,7 @@ public class Game {
     private void update(double elapsedTime) {
     }
 
-    private void render(double elapsedTime) {
+    private void render(long window, double elapsedTime) {
         graphics.begin();
 
         for (var row: maze){
@@ -248,6 +321,8 @@ public class Game {
                 renderCell(cell);
             }
         }
+        graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
+
         graphics.end();
     }
 
