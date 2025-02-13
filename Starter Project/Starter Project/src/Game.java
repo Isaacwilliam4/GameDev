@@ -15,12 +15,12 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private final int mazeSize = 20;
+    private final int mazeSize = 50;
     private final float fMazeSize = (float) mazeSize;
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
     private final float CELL_SIZE = 1 / fMazeSize;
-    private final float CELL_WALL_THICKNESS = 0.005f;
+    private final float CELL_WALL_THICKNESS = 0.003f;
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
     private Texture circle;
@@ -152,6 +152,7 @@ public class Game {
             notInMaze.remove(randomNeighborIdx);
             frontier.remove(randomNeighborIdx);
         }
+        cliRender();
     }
 
     private static Map.Entry<String, List<Integer>> getRandomFromHashMap(HashMap<String, List<Integer>> set){
@@ -351,35 +352,52 @@ public class Game {
     }
 
     private void updateShortestPath(){
-        Queue<MazeCell> queue = new LinkedList<>();
-        MazeCell cell = characterLocation;
-        while (cell != maze[endLocation.getFirst()][endLocation.getLast()]){
-            if (cell.getTop() != null){
-                MazeCell nextCell = cell.getTop();
-                nextCell.setPrevious(cell);
-                queue.add(nextCell);
+        Queue<List<MazeCell>> queue = new ArrayDeque<>();
+        Set<List<Integer>> visited = new HashSet<>();
+        List<MazeCell> path = new ArrayList<>();
+        path.add(characterLocation);
+        MazeCell cell = path.getLast();
+        while (!cell.getIndex().equals(endLocation)){
+            if (!visited.contains(cell.getIndex())){
+                visited.add(cell.getIndex());
+                if (cell.getTop() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getTop();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+                if (cell.getBottom() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getBottom();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+                if (cell.getRight() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getRight();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+                if (cell.getLeft() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getLeft();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
             }
-            if (cell.getBottom() != null){
-                MazeCell nextCell = cell.getBottom();
-                nextCell.setPrevious(cell);
-                queue.add(nextCell);
-            }
-            if (cell.getRight() != null){
-                MazeCell nextCell = cell.getRight();
-                nextCell.setPrevious(cell);
-                queue.add(nextCell);
-            }
-            if (cell.getLeft() != null){
-                MazeCell nextCell = cell.getLeft();
-                nextCell.setPrevious(cell);
-                queue.add(nextCell);
-            }
-            cell = queue.remove();
+            path = queue.remove();
+            cell = path.getLast();
+
         }
 
-        while (cell.getPrevious() != characterLocation){
-            cell.setOnShortestPath(true);
-            cell = cell.getPrevious();
+        for (MazeCell[] row: maze){
+            for (MazeCell iCell:row){
+                iCell.setOnShortestPath(false);
+            }
+        }
+
+        for (MazeCell iCell: path){
+            iCell.setOnShortestPath(true);
         }
     }
 
@@ -415,18 +433,24 @@ public class Game {
             graphics.draw(r, Color.YELLOW);
         }
 
+        float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+        float top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+        Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
+        graphics.draw(r, Color.CORNFLOWER_BLUE);
+
+
         if (cell.isVisited()){
-            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            float top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
+            left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.YELLOW);
         }
 
         if (cell.isOnShortestPath()){
-            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            float top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
+            left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+            r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
 
             graphics.draw(r, Color.BLUE);
         }

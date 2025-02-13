@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class MazeCell {
     private MazeCell top;
     private MazeCell bottom;
@@ -15,6 +17,9 @@ public class MazeCell {
         this.row = row;
     }
 
+    public List<Integer> getIndex(){
+        return List.of(row, column);
+    }
     public MazeCell getPrevious(){
         return previous;
     }
