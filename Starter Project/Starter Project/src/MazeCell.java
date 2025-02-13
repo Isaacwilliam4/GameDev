@@ -8,12 +8,19 @@ public class MazeCell {
     private int row;
     private boolean visited = false;
     private boolean isOnShortestPath = false;
+    private MazeCell previous = null;
 
     public MazeCell(int row, int column) {
         this.column = column;
         this.row = row;
     }
 
+    public MazeCell getPrevious(){
+        return previous;
+    }
+    public void setPrevious(MazeCell previous){
+        this.previous = previous;
+    }
     public boolean isOnShortestPath() {
         return isOnShortestPath;
     }

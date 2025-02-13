@@ -5,6 +5,7 @@ import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
 
 import java.awt.*;
+import java.awt.image.AreaAveragingScaleFilter;
 import java.util.*;
 import java.util.List;
 import edu.usu.graphics.*;
@@ -25,6 +26,8 @@ public class Game {
     private Texture circle;
     private MazeCell characterLocation;
     private final KeyboardInput inputKeyboard;
+    private final List<Integer> startLocation = List.of(0, 0);
+    private final List<Integer> endLocation = List.of(mazeSize-1,mazeSize-1);
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -83,7 +86,7 @@ public class Game {
             }
         }
 
-        characterLocation = maze[0][0];
+        characterLocation = maze[startLocation.getFirst()][startLocation.getLast()];
         List<Integer> startCell = List.of(0,0);
         notInMaze.remove(startCell);
         //Add cell to maze, add its neighbors to the frontier
@@ -344,6 +347,15 @@ public class Game {
         graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
 
         graphics.end();
+    }
+
+    private void updateShortestPath(){
+        HashMap<List<Integer>, ArrayList<MazeCell>> discovered = new HashMap<>();
+
+        while (!discovered.containsKey(endLocation)){
+
+        }
+
     }
 
     private void renderCell(MazeCell cell){
