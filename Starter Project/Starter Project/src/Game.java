@@ -17,13 +17,17 @@ public class Game {
     private final Graphics2D graphics;
     private final int mazeSize = 3;
     private final float fMazeSize = (float) mazeSize;
-    private final float MAZE_LEFT = -0.5f;
-    private final float MAZE_TOP = -0.5f;
     private final float CELL_SIZE = 1 / fMazeSize;
     private final float CELL_WALL_THICKNESS = 0.002f;
+    private final float MAZE_LEFT = -0.5f;
+    private final float MAZE_TOP = -0.5f;
+    private final float MAZE_BOTTOM = 0.5f - CELL_SIZE;
+    private final float MAZE_RIGHT = 0.5f - CELL_SIZE;
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
+    private final Rectangle rectCircleEnd = new Rectangle(MAZE_BOTTOM, MAZE_RIGHT, CELL_SIZE, CELL_SIZE);
     private Texture circle;
+    private Texture endCircle;
     private MazeCell characterLocation;
     private final KeyboardInput inputKeyboard;
     private final List<Integer> startLocation = List.of(0, 0);
@@ -38,6 +42,7 @@ public class Game {
     }
 
     public void initialize() {
+        endCircle = new Texture("resources/images/greencircle.png");
         circle = new Texture("resources/images/bluecircle.png");
 
         setupMaze();
@@ -349,13 +354,15 @@ public class Game {
     private void render(long window, double elapsedTime) {
         graphics.begin();
 
+
+
         for (var row: maze){
             for (var cell:row){
                 renderCell(cell);
             }
         }
         graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
-
+        graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.end();
     }
 
