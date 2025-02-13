@@ -113,19 +113,19 @@ public class Game {
         //Add cell to maze, add its neighbors to the frontier
         notInMaze.remove(startCell);
 
-        HashMap<String, List<Integer>> neighbors = getNeighbors(startCell);
+        HashMap<String, List<Integer>> neighbors = MazeUtils.getNeighbors(startCell, mazeSize);
         for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
             frontier.add(entry.getValue());
         }
 
         while (!notInMaze.isEmpty()) {
             //Now select a cell from the frontier and add it to the maze
-            List<Integer> frontierCell = getRandomFromHashSet(frontier);
+            List<Integer> frontierCell = MazeUtils.getRandomFromHashSet(frontier);
             notInMaze.remove(frontierCell);
             frontier.remove(frontierCell);
 
             //Get neighbors of selected frontier cell
-            HashMap<String, List<Integer>> frontierNeighbors = getNeighbors(frontierCell);
+            HashMap<String, List<Integer>> frontierNeighbors = MazeUtils.getNeighbors(frontierCell, mazeSize);
 
             //Get the neighbors of the frontier cell that are in the maze, add neighbors not in maze to frontier
             HashMap<String, List<Integer>> frontierNeighborsInMaze = new HashMap<>();
@@ -139,7 +139,7 @@ public class Game {
             }
 
             //Randomly select one of the frontier neighbors in the maze to connect to
-            Map.Entry<String, List<Integer>> randomNeighbor = getRandomFromHashMap(frontierNeighborsInMaze);
+            Map.Entry<String, List<Integer>> randomNeighbor = MazeUtils.getRandomFromHashMap(frontierNeighborsInMaze);
 
             //Now connect the frontier cell with that random neighbor
             List<Integer> randomNeighborIdx = randomNeighbor.getValue();
@@ -173,111 +173,7 @@ public class Game {
             notInMaze.remove(randomNeighborIdx);
             frontier.remove(randomNeighborIdx);
         }
-        cliRender();
-    }
-
-    private static Map.Entry<String, List<Integer>> getRandomFromHashMap(HashMap<String, List<Integer>> set){
-        Random rand = new Random();
-        int randInt = rand.nextInt(set.size());
-        int idx = 0;
-        Map.Entry<String, List<Integer>> randCell = null;
-
-        for (Map.Entry<String, List<Integer>> entry: set.entrySet()) {
-            if (randInt == idx){
-                randCell = entry;
-                break;
-            }
-            idx++;
-        }
-
-        return randCell;
-    }
-
-    private static List<Integer> getRandomFromHashSet(Set<List<Integer>> set){
-        Random rand = new Random();
-        int randInt = rand.nextInt(set.size());
-        int idx = 0;
-        List<Integer> randCell = null;
-
-        for (List<Integer> value: set) {
-            if (randInt == idx){
-                randCell = value;
-                break;
-            }
-            idx++;
-        }
-
-        return randCell;
-    }
-
-    private void cliRender(){
-        StringBuilder[][] cliMaze = new StringBuilder[mazeSize][mazeSize];
-        for (int x = 0; x < cliMaze.length; x++) {
-            for (int y = 0; y < cliMaze[x].length; y++) {
-                cliMaze[x][y] = new StringBuilder("    ");
-            }
-        }
-
-        for (var row: maze){
-            for (var cell:row){
-                cliRenderCell(cell, cliMaze);
-            }
-        }
-
-        StringBuilder cliMazeText = new StringBuilder();
-        for (int x = 0; x < cliMaze.length; x++) {
-            for (int y = 0; y < cliMaze[0].length; y++) {
-                cliMazeText.append(cliMaze[x][y].toString());
-            }
-            cliMazeText.append("\n");
-        }
-
-        System.out.println(cliMazeText);
-    }
-
-    private static void replaceAll(StringBuilder builder, String from, String to) {
-        int index = builder.indexOf(from);
-        while (index != -1) {
-            builder.replace(index, index + from.length(), to);
-            index += to.length(); // Move to the end of the replacement
-            index = builder.indexOf(from, index);
-        }
-    }
-
-    private void cliRenderCell(MazeCell cell, StringBuilder[][] cliMaze) {
-        if (cell.getTop() == null){
-            if ((cell.getRow() - 1) >= 0){
-                StringBuilder builder = cliMaze[cell.getRow()-1][cell.getColumn()];
-                builder.replace(1, 3,"__");
-            }
-        }
-        if (cell.getBottom() == null){
-            StringBuilder builder = cliMaze[cell.getRow()][cell.getColumn()];
-            builder.replace(1, 3,"__");
-        }
-        if (cell.getLeft() == null){
-            cliMaze[cell.getRow()][cell.getColumn()].replace(0, 1,"|");
-        }
-        if (cell.getRight() == null){
-            cliMaze[cell.getRow()][cell.getColumn()].replace(3, 4,"|");
-        }
-    }
-
-    private HashMap<String, List<Integer>> getNeighbors(List<Integer> block) {
-        HashMap<String, List<Integer>> neighbors = new HashMap<>();
-        if ((block.getLast() - 1) >= 0){
-            neighbors.put("Left", List.of(block.getFirst(), block.getLast() - 1));
-        }
-        if ((block.getLast() + 1) < mazeSize){
-            neighbors.put("Right", List.of(block.getFirst(), block.getLast() + 1));
-        }
-        if ((block.getFirst() - 1) >= 0){
-            neighbors.put("Top", List.of(block.getFirst() - 1, block.getLast()));
-        }
-        if ((block.getFirst() + 1) < mazeSize){
-            neighbors.put("Bottom", List.of(block.getFirst() + 1, block.getLast()));
-        }
-        return neighbors;
+        MazeUtils.cliRender(maze);
     }
 
     private void moveUp(float distance) {
@@ -286,7 +182,6 @@ public class Game {
             rectCircle.top = rectCircle.top - distance;
             characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
         }
-        updatePaths();
     }
 
     private void moveDown(float distance) {
@@ -295,7 +190,6 @@ public class Game {
             rectCircle.top = rectCircle.top + distance;
             characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
         }
-        updatePaths();
     }
 
     private void moveLeft(float distance) {
@@ -304,7 +198,6 @@ public class Game {
             rectCircle.left = rectCircle.left - distance;
             characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
         }
-        updatePaths();
     }
 
     private void moveRight(float distance) {
@@ -313,12 +206,8 @@ public class Game {
             rectCircle.left = rectCircle.left + distance;
             characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
         }
-        updatePaths();
     }
 
-    private void updatePaths(){
-        characterLocation.setVisited(true);
-    }
 
     public void shutdown() {
     }
@@ -348,13 +237,12 @@ public class Game {
     }
 
     private void update(double elapsedTime) {
+        characterLocation.setVisited(true);
         updateShortestPath();
     }
 
     private void render(long window, double elapsedTime) {
         graphics.begin();
-
-
 
         for (var row: maze){
             for (var cell:row){
@@ -416,30 +304,6 @@ public class Game {
         }
     }
 
-    private boolean areNeighbors(MazeCell cell1, MazeCell cell2){
-        if (cell1.getTop() != null){
-            if (cell1.getTop().equals(cell2)){
-                return true;
-            }
-        }
-        if (cell1.getBottom() != null){
-            if (cell1.getBottom().equals(cell2)){
-                return true;
-            }
-        }
-        if (cell1.getRight() != null){
-            if (cell1.getRight().equals(cell2)){
-                return true;
-            }
-        }
-        if (cell1.getLeft() != null){
-            if (cell1.getLeft().equals(cell2)){
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void renderCell(MazeCell cell){
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
@@ -496,7 +360,7 @@ public class Game {
         }
 
         if (cell.isOnShortestPath() & showHint){
-            if (areNeighbors(characterLocation, cell)){
+            if (MazeUtils.areNeighbors(characterLocation, cell)){
                 left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
                 top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
                 r = new Rectangle(left, top, dotSize, dotSize);
