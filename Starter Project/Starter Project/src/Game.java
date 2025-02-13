@@ -251,21 +251,10 @@ public class Game {
         MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
     }
 
-    private void render(long window, double elapsedTime) {
-        graphics.begin();
-
-        for (var row: maze){
-            for (var cell:row){
-                renderCell(cell);
-            }
-        }
-
+    private void drawTextWithNewLines(String text, float top, float left, float width) {
         String[] stringArr = instructionText.split("\n");
 
-        float width = 0.40f; // we are deciding the width
-        float left = -0.95f; // center horizontally
-        float top = -0.1f; // center vertically
-        float height = 1f;
+        float height = 100f;
         for (String str: stringArr){
             float newHeight = font.measureTextHeight(str, width);
             if (newHeight < height){
@@ -275,10 +264,22 @@ public class Game {
 
         int idx = 0;
         for (String str: stringArr){
-            float newTop = top - (idx * height);
+            float newTop = top + (idx * height);
             graphics.drawTextByHeight(font, str, left, newTop, height, Color.BLACK);
             idx++;
         }
+    }
+
+    private void render(long window, double elapsedTime) {
+        graphics.begin();
+
+        for (var row: maze){
+            for (var cell:row){
+                renderCell(cell);
+            }
+        }
+
+        drawTextWithNewLines(instructionText, -0.5f, -0.95f, 0.40f);
 
         graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
