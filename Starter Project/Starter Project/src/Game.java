@@ -16,26 +16,26 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private final int mazeSize = 20;
+    private int mazeSize = 3;
     private final float fMazeSize = (float) mazeSize;
     private final float CELL_SIZE = 1 / fMazeSize;
     private final float CELL_WALL_THICKNESS = 0.002f;
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
-    private final float MAZE_BOTTOM = 0.5f - CELL_SIZE;
-    private final float MAZE_RIGHT = 0.5f - CELL_SIZE;
     private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
+    private final float TEXT_HEIGHT = 0.04f;
     private final String instructionText;
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
-    private final Rectangle rectCircleEnd = new Rectangle(MAZE_BOTTOM, MAZE_RIGHT, CELL_SIZE, CELL_SIZE);
+    private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)));
     private Texture circle;
     private Texture endCircle;
     private Font font;
     private MazeCell characterLocation;
+    private MazeCell previousLocation;
     private final KeyboardInput inputKeyboard;
-    private final List<Integer> startLocation = List.of(0, 0);
-    private final List<Integer> endLocation = List.of(mazeSize-1,mazeSize-1);
+    private MazeCell startLocation;
+    private MazeCell endLocation;
     private boolean showHint = false;
     private boolean showBreadCrumbs = false;
     private boolean showPath = false;
@@ -43,6 +43,11 @@ public class Game {
     private float score = 0;
     private List<Float> scoreList = new ArrayList<>();
     private Set<MazeCell> originalShortestPath;
+    private boolean gameOver = false;
+    private boolean firstTimeGame = true;
+    private boolean displayHighScores = false;
+    private boolean displayCredits = false;
+    private boolean startGame = false;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -60,13 +65,25 @@ public class Game {
         endCircle = new Texture("resources/images/greencircle.png");
         circle = new Texture("resources/images/bluecircle.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
-
-        setupMaze();
         registerKeys();
-        originalShortestPath = new HashSet<>(MazeUtils.updateShortestPath(maze, characterLocation, endLocation));
-        originalShortestPath.remove(characterLocation);
+        if (startGame) {
+            initMaze();
+            setupMaze();
+            originalShortestPath = new HashSet<>(MazeUtils.updateShortestPath(maze, characterLocation, endLocation));
+            originalShortestPath.remove(characterLocation);
+        }
     }
 
+    private void initMaze() {
+        maze = new MazeCell[mazeSize][mazeSize];
+        for (int x = 0; x < mazeSize; x++) {
+            for (int y = 0; y < mazeSize; y++) {
+                maze[x][y] = new MazeCell(x,y);
+            }
+        }
+        this.startLocation = maze[0][0];
+        this.endLocation = maze[maze.length - 1][maze[0].length - 1];
+    }
     private void registerKeys(){
         // Register the inputs we want to have invoked
         inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> {
@@ -110,10 +127,49 @@ public class Game {
         inputKeyboard.registerCommand(GLFW_KEY_H, true, (double elapsedTime) -> {
             showHint = !showHint;
         });
+
+        inputKeyboard.registerCommand(GLFW_KEY_F1, true, (double elapsedTime) -> {
+            gameOver = false;
+            firstTimeGame = false;
+            startGame = true;
+            mazeSize = 5;
+            initialize();
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_F2, true, (double elapsedTime) -> {
+            gameOver = false;
+            firstTimeGame = false;
+            startGame = true;
+            mazeSize = 10;
+            initialize();
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_F3, true, (double elapsedTime) -> {
+            gameOver = false;
+            firstTimeGame = false;
+            startGame = true;
+            mazeSize = 15;
+            initialize();
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_F4, true, (double elapsedTime) -> {
+            gameOver = false;
+            firstTimeGame = false;
+            startGame = true;
+            mazeSize = 20;
+            initialize();
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> {
+            displayHighScores = true;
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_F6, true, (double elapsedTime) -> {
+            displayCredits = true;
+        });
     }
 
     private void setupMaze(){
-        maze = new MazeCell[mazeSize][mazeSize];
         Set<List<Integer>> notInMaze = new HashSet<>();
         Set<List<Integer>> frontier = new HashSet<>();
 
@@ -124,7 +180,7 @@ public class Game {
             }
         }
 
-        characterLocation = maze[startLocation.getFirst()][startLocation.getLast()];
+        characterLocation = maze[0][0];
         characterLocation.setVisited(true);
         List<Integer> startCell = List.of(0,0);
         notInMaze.remove(startCell);
@@ -195,6 +251,7 @@ public class Game {
     }
 
     private void moveUp(float distance) {
+        previousLocation = characterLocation;
         if ((characterLocation.getRow() - 1) >= 0 &&
         characterLocation.getTop() != null){
             rectCircle.top = rectCircle.top - distance;
@@ -203,6 +260,7 @@ public class Game {
     }
 
     private void moveDown(float distance) {
+        previousLocation = characterLocation;
         if ((characterLocation.getRow() + 1) < mazeSize &&
         characterLocation.getBottom() != null){
             rectCircle.top = rectCircle.top + distance;
@@ -211,6 +269,7 @@ public class Game {
     }
 
     private void moveLeft(float distance) {
+        previousLocation = characterLocation;
         if ((characterLocation.getColumn() - 1) >= 0 &&
         characterLocation.getLeft() != null){
             rectCircle.left = rectCircle.left - distance;
@@ -219,6 +278,7 @@ public class Game {
     }
 
     private void moveRight(float distance) {
+        previousLocation = characterLocation;
         if ((characterLocation.getColumn() + 1) < mazeSize &&
                 characterLocation.getRight() != null){
             rectCircle.left = rectCircle.left + distance;
@@ -255,24 +315,33 @@ public class Game {
     }
 
     private void update(double elapsedTime) {
-        characterLocation.setVisited(true);
-        if (originalShortestPath.contains(characterLocation)) {
-            score += STEP_ON_SHORTEST_PATH_SCORE;
-            originalShortestPath.remove(characterLocation);
-        }
-        MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
-    }
+        if (startGame){
+            if (previousLocation != null) {
+                previousLocation.setScoreComputed(false);
+            }
+            if (originalShortestPath.contains(characterLocation)) {
+                score += STEP_ON_SHORTEST_PATH_SCORE;
+                originalShortestPath.remove(characterLocation);
+            }
+            else{
+                if (!characterLocation.equals(startLocation) &
+                        !characterLocation.isScoreComputed() &
+                        !characterLocation.isVisited()) {
+                    score -= 1;
+                }
+            }
+            characterLocation.setVisited(true);
+            characterLocation.setScoreComputed(true);
+            MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
-    private void drawTextWithNewLines(String text, float top, float left, float width) {
-        String[] stringArr = text.split("\n");
-
-        float height = 100f;
-        for (String str: stringArr){
-            float newHeight = font.measureTextHeight(str, width);
-            if (newHeight < height){
-                height = newHeight;
+            if (characterLocation.equals(endLocation)) {
+                gameOver = true;
             }
         }
+    }
+
+    private void drawTextWithNewLines(String text, float top, float left, float height) {
+        String[] stringArr = text.split("\n");
 
         int idx = 0;
         for (String str: stringArr){
@@ -285,30 +354,70 @@ public class Game {
     private void render(long window, double elapsedTime) {
         graphics.begin();
 
-        for (var row: maze){
-            for (var cell:row){
-                renderCell(cell);
+        if (firstTimeGame){
+            StringBuilder menuBuilder = new StringBuilder();
+            graphics.draw(displayRect, Color.WHITE);
+
+            menuBuilder.append("Welcome to the maze game\n");
+            menuBuilder.append(instructionText);
+
+            drawTextWithNewLines(menuBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
+
+        }
+        else if (gameOver){
+            StringBuilder menuBuilder = new StringBuilder();
+            scoreList.add(score);
+            menuBuilder.append("Game Over, Score:").append(score).append("\n");
+            menuBuilder.append(instructionText);
+            drawTextWithNewLines(menuBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
+            score = 0;
+        }
+        else if (displayHighScores){
+            graphics.draw(displayRect, Color.WHITE);
+
+            StringBuilder scoreListBuilder = new StringBuilder();
+            scoreListBuilder.append("High Scores: \n");
+
+            for (float score: scoreList){
+                scoreListBuilder.append(score);
+                scoreListBuilder.append("\n");
             }
+
+            drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
         }
-
-        StringBuilder scoreListBuilder = new StringBuilder();
-        scoreListBuilder.append("High Scores: \n");
-
-        for (float score: scoreList){
-            scoreListBuilder.append(score);
-            scoreListBuilder.append("\n");
+        else if (displayCredits){
+            graphics.draw(displayRect, Color.WHITE);
+            graphics.drawTextByHeight(font, "Made by Isaac Peterson", -0.1f, -0.1f, TEXT_HEIGHT, Color.BLACK);
         }
+        else{
+            for (var row: maze){
+                for (var cell:row){
+                    renderCell(cell);
+                }
+            }
 
-        String timeAndScoreText = "Time " + Float.toString(timePassed) + "\n" +
-                "Score " + Float.toString(score);
+            StringBuilder scoreListBuilder = new StringBuilder();
+            scoreListBuilder.append("High Scores: \n");
 
-        drawTextWithNewLines(instructionText, -0.5f, -0.95f, 0.40f);
-        drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, 0.15f);
-        drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.95f, 0.3f);
+            for (float score: scoreList){
+                scoreListBuilder.append(score);
+                scoreListBuilder.append("\n");
+            }
 
-        graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
-        graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
+            String timeAndScoreText = "Time " + Float.toString(timePassed) + "\n" +
+                    "Score " + Float.toString(score);
+
+            drawTextWithNewLines(instructionText, -0.5f, -0.95f, TEXT_HEIGHT);
+            drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, TEXT_HEIGHT);
+            drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.95f, TEXT_HEIGHT);
+
+            Rectangle rectCircleEnd = new Rectangle(CELL_SIZE*mazeSize, CELL_SIZE*mazeSize, CELL_SIZE, CELL_SIZE);
+
+            graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
+            graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
+        }
         graphics.end();
+
     }
 
     private void renderCell(MazeCell cell){

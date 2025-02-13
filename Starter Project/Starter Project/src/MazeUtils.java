@@ -2,13 +2,13 @@ import java.util.*;
 
 public class MazeUtils {
 
-    public static List<MazeCell> updateShortestPath(MazeCell[][] maze, MazeCell characterLocation, List<Integer> endLocation) {
+    public static List<MazeCell> updateShortestPath(MazeCell[][] maze, MazeCell characterLocation, MazeCell endLocation) {
         Queue<List<MazeCell>> queue = new ArrayDeque<>();
         Set<List<Integer>> visited = new HashSet<>();
         List<MazeCell> path = new ArrayList<>();
         path.add(characterLocation);
         MazeCell cell = path.getLast();
-        while (!cell.getIndex().equals(endLocation)){
+        while (!cell.getIndex().equals(endLocation.getIndex())) {
             if (!visited.contains(cell.getIndex())){
                 visited.add(cell.getIndex());
                 if (cell.getTop() != null){

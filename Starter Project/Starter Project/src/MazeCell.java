@@ -10,8 +10,8 @@ public class MazeCell {
     private int row;
     private boolean visited = false;
     private boolean isOnShortestPath = false;
-    private MazeCell previous = null;
-    private int value = 0;
+    private boolean scoreComputed = false;
+
 
     public MazeCell(int row, int column) {
         this.column = column;
@@ -20,12 +20,6 @@ public class MazeCell {
 
     public List<Integer> getIndex(){
         return List.of(row, column);
-    }
-    public MazeCell getPrevious(){
-        return previous;
-    }
-    public void setPrevious(MazeCell previous){
-        this.previous = previous;
     }
     public boolean isOnShortestPath() {
         return isOnShortestPath;
@@ -40,11 +34,11 @@ public class MazeCell {
         this.visited = visited;
     }
 
-    public int getValue(){
-        return value;
+    public boolean isScoreComputed() {
+        return scoreComputed;
     }
-    public void setValue(int value){
-        this.value = value;
+    public void setScoreComputed(boolean scoreComputed) {
+        this.scoreComputed = scoreComputed;
     }
     public int getColumn() {
         return column;
