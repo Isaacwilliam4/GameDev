@@ -28,6 +28,9 @@ public class Game {
     private final KeyboardInput inputKeyboard;
     private final List<Integer> startLocation = List.of(0, 0);
     private final List<Integer> endLocation = List.of(mazeSize-1,mazeSize-1);
+    private boolean showHint = false;
+    private boolean showBreadCrumbs = false;
+    private boolean showPath = false;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -71,6 +74,18 @@ public class Game {
 
         inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> {
             glfwSetWindowShouldClose(graphics.getWindow(), true);
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_P, true, (double elapsedTime) -> {
+            showPath = !showPath;
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_B, true, (double elapsedTime) -> {
+            showBreadCrumbs = !showBreadCrumbs;
+        });
+
+        inputKeyboard.registerCommand(GLFW_KEY_H, true, (double elapsedTime) -> {
+            showHint = !showHint;
         });
     }
 
@@ -402,6 +417,30 @@ public class Game {
         }
     }
 
+    private boolean areNeighbors(MazeCell cell1, MazeCell cell2){
+        if (cell1.getTop() != null){
+            if (cell1.getTop().equals(cell2)){
+                return true;
+            }
+        }
+        if (cell1.getBottom() != null){
+            if (cell1.getBottom().equals(cell2)){
+                return true;
+            }
+        }
+        if (cell1.getRight() != null){
+            if (cell1.getRight().equals(cell2)){
+                return true;
+            }
+        }
+        if (cell1.getLeft() != null){
+            if (cell1.getLeft().equals(cell2)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void renderCell(MazeCell cell){
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
@@ -441,7 +480,7 @@ public class Game {
 
         float dotSize = CELL_WALL_THICKNESS*3;
 
-        if (cell.isVisited()){
+        if (cell.isVisited() & showBreadCrumbs){
             left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
             top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
             r = new Rectangle(left, top, dotSize, dotSize);
@@ -449,12 +488,22 @@ public class Game {
             graphics.draw(r, Color.YELLOW);
         }
 
-        if (cell.isOnShortestPath()){
+        if (cell.isOnShortestPath() & showPath){
             left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
             top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
             r = new Rectangle(left, top, dotSize, dotSize);
 
             graphics.draw(r, Color.BLUE);
+        }
+
+        if (cell.isOnShortestPath() & showHint){
+            if (areNeighbors(characterLocation, cell)){
+                left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+                top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
+                r = new Rectangle(left, top, dotSize, dotSize);
+
+                graphics.draw(r, Color.BLUE);
+            }
         }
     }
 }
