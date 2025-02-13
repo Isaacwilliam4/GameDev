@@ -1,6 +1,7 @@
 import com.sun.tools.javac.Main;
 import edu.usu.graphics.*;
 import edu.usu.graphics.Color;
+import edu.usu.graphics.Font;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
 
@@ -23,11 +24,13 @@ public class Game {
     private final float MAZE_TOP = -0.5f;
     private final float MAZE_BOTTOM = 0.5f - CELL_SIZE;
     private final float MAZE_RIGHT = 0.5f - CELL_SIZE;
+    private final String instructionText;
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
     private final Rectangle rectCircleEnd = new Rectangle(MAZE_BOTTOM, MAZE_RIGHT, CELL_SIZE, CELL_SIZE);
     private Texture circle;
     private Texture endCircle;
+    private Font font;
     private MazeCell characterLocation;
     private final KeyboardInput inputKeyboard;
     private final List<Integer> startLocation = List.of(0, 0);
@@ -39,11 +42,18 @@ public class Game {
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
         this.inputKeyboard = new KeyboardInput(graphics.getWindow());
+        this.instructionText = "5x5 Maze - f1\n" +
+                "10x10 Maze - f2\n" +
+                "15x15 Maze - f3\n" +
+                "20x20 Maze - f4\n" +
+                "Display High Scores - f5\n" +
+                "Display Credits - f6\n";
     }
 
     public void initialize() {
         endCircle = new Texture("resources/images/greencircle.png");
         circle = new Texture("resources/images/bluecircle.png");
+        font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 16, false);
 
         setupMaze();
         registerKeys();
@@ -249,6 +259,27 @@ public class Game {
                 renderCell(cell);
             }
         }
+
+        String[] stringArr = instructionText.split("\n");
+
+        float width = 0.40f; // we are deciding the width
+        float left = -0.95f; // center horizontally
+        float top = -0.1f; // center vertically
+        float height = 1f;
+        for (String str: stringArr){
+            float newHeight = font.measureTextHeight(str, width);
+            if (newHeight < height){
+                height = newHeight;
+            }
+        }
+
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = top - (idx * height);
+            graphics.drawTextByHeight(font, str, left, newTop, height, Color.BLACK);
+            idx++;
+        }
+
         graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.end();
