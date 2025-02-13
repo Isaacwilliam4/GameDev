@@ -14,14 +14,18 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private MazeCell[][] maze;
     private final int mazeSize = 20;
-    private final Rectangle rectCircle = new Rectangle(-0.85f, -0.45f, 0.40f, 0.40f);
+    private final float fMazeSize = (float) mazeSize;
+    private final float MAZE_LEFT = -0.5f;
+    private final float MAZE_TOP = -0.5f;
+    private final float CELL_SIZE = 1 / fMazeSize;
+    private final float CELL_WALL_THICKNESS = 0.005f;
+    private MazeCell[][] maze;
+    private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
     private Texture circle;
     private MazeCell characterLocation;
     private final KeyboardInput inputKeyboard;
     private static final float SPRITE_MOVE_RATE_PER_SECOND = 0.40f;    // world coords per second
-    private static final float SPRITE_ROTATE_RATE_PER_SECOND = (float) (Math.PI / 2); // radians per second
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -80,6 +84,7 @@ public class Game {
             }
         }
 
+        characterLocation = maze[0][0];
         List<Integer> startCell = List.of(0,0);
         notInMaze.remove(startCell);
         //Add cell to maze, add its neighbors to the frontier
@@ -327,11 +332,7 @@ public class Game {
     }
 
     private void renderCell(MazeCell cell){
-        final float fMazeSize = (float) mazeSize;
-        final float MAZE_LEFT = -0.5f;
-        final float MAZE_TOP = -0.5f;
-        final float CELL_SIZE = 1 / fMazeSize;
-        final float CELL_WALL_THICKNESS = 0.005f;
+
 
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
