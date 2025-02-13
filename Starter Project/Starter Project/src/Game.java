@@ -23,7 +23,7 @@ public class Game {
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
     private Texture circle;
-    private MazeCell characterLocation = new MazeCell(0,0);
+    private MazeCell characterLocation;
     private final KeyboardInput inputKeyboard;
 
     public Game(Graphics2D graphics) {
@@ -83,6 +83,7 @@ public class Game {
             }
         }
 
+        characterLocation = maze[0][0];
         List<Integer> startCell = List.of(0,0);
         notInMaze.remove(startCell);
         //Add cell to maze, add its neighbors to the frontier
@@ -255,31 +256,35 @@ public class Game {
     }
 
     private void moveUp(float distance) {
-        if ((characterLocation.getRow() - 1) >= 0){
+        if ((characterLocation.getRow() - 1) >= 0 &&
+        characterLocation.getTop() != null){
             rectCircle.top = rectCircle.top - distance;
-            characterLocation.setRow(characterLocation.getRow() - 1);
+            characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
         }
     }
 
     private void moveDown(float distance) {
-        if ((characterLocation.getRow() + 1) < mazeSize){
+        if ((characterLocation.getRow() + 1) < mazeSize &&
+        characterLocation.getBottom() != null){
             rectCircle.top = rectCircle.top + distance;
-            characterLocation.setRow(characterLocation.getRow() + 1);
+            characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
         }
     }
 
     private void moveLeft(float distance) {
-        if ((characterLocation.getColumn() - 1) >= 0){
+        if ((characterLocation.getColumn() - 1) >= 0 &&
+        characterLocation.getLeft() != null){
             rectCircle.left = rectCircle.left - distance;
-            characterLocation.setColumn(characterLocation.getColumn() - 1);
+            characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
         }
 
     }
 
     private void moveRight(float distance) {
-        if ((characterLocation.getColumn() + 1) < mazeSize){
+        if ((characterLocation.getColumn() + 1) < mazeSize &&
+                characterLocation.getRight() != null){
             rectCircle.left = rectCircle.left + distance;
-            characterLocation.setColumn(characterLocation.getColumn() + 1);
+            characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
         }
     }
 
