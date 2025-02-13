@@ -1,6 +1,57 @@
 import java.util.*;
 
 public class MazeUtils {
+
+    public static void updateShortestPath(MazeCell[][] maze, MazeCell characterLocation, List<Integer> endLocation) {
+        Queue<List<MazeCell>> queue = new ArrayDeque<>();
+        Set<List<Integer>> visited = new HashSet<>();
+        List<MazeCell> path = new ArrayList<>();
+        path.add(characterLocation);
+        MazeCell cell = path.getLast();
+        while (!cell.getIndex().equals(endLocation)){
+            if (!visited.contains(cell.getIndex())){
+                visited.add(cell.getIndex());
+                if (cell.getTop() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getTop();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+                if (cell.getBottom() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getBottom();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+                if (cell.getRight() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getRight();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+                if (cell.getLeft() != null){
+                    List<MazeCell> newPath = new ArrayList<>(path);
+                    MazeCell nextCell = cell.getLeft();
+                    newPath.add(nextCell);
+                    queue.add(newPath);
+                }
+            }
+            path = queue.remove();
+            cell = path.getLast();
+
+        }
+
+        for (MazeCell[] row: maze){
+            for (MazeCell iCell:row){
+                iCell.setOnShortestPath(false);
+            }
+        }
+
+        for (MazeCell iCell: path){
+            iCell.setOnShortestPath(true);
+        }
+    }
+
     public static Map.Entry<String, List<Integer>> getRandomFromHashMap(HashMap<String, List<Integer>> set){
         Random rand = new Random();
         int randInt = rand.nextInt(set.size());

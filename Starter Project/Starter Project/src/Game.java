@@ -238,7 +238,7 @@ public class Game {
 
     private void update(double elapsedTime) {
         characterLocation.setVisited(true);
-        updateShortestPath();
+        MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
     }
 
     private void render(long window, double elapsedTime) {
@@ -252,56 +252,6 @@ public class Game {
         graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.end();
-    }
-
-    private void updateShortestPath(){
-        Queue<List<MazeCell>> queue = new ArrayDeque<>();
-        Set<List<Integer>> visited = new HashSet<>();
-        List<MazeCell> path = new ArrayList<>();
-        path.add(characterLocation);
-        MazeCell cell = path.getLast();
-        while (!cell.getIndex().equals(endLocation)){
-            if (!visited.contains(cell.getIndex())){
-                visited.add(cell.getIndex());
-                if (cell.getTop() != null){
-                    List<MazeCell> newPath = new ArrayList<>(path);
-                    MazeCell nextCell = cell.getTop();
-                    newPath.add(nextCell);
-                    queue.add(newPath);
-                }
-                if (cell.getBottom() != null){
-                    List<MazeCell> newPath = new ArrayList<>(path);
-                    MazeCell nextCell = cell.getBottom();
-                    newPath.add(nextCell);
-                    queue.add(newPath);
-                }
-                if (cell.getRight() != null){
-                    List<MazeCell> newPath = new ArrayList<>(path);
-                    MazeCell nextCell = cell.getRight();
-                    newPath.add(nextCell);
-                    queue.add(newPath);
-                }
-                if (cell.getLeft() != null){
-                    List<MazeCell> newPath = new ArrayList<>(path);
-                    MazeCell nextCell = cell.getLeft();
-                    newPath.add(nextCell);
-                    queue.add(newPath);
-                }
-            }
-            path = queue.remove();
-            cell = path.getLast();
-
-        }
-
-        for (MazeCell[] row: maze){
-            for (MazeCell iCell:row){
-                iCell.setOnShortestPath(false);
-            }
-        }
-
-        for (MazeCell iCell: path){
-            iCell.setOnShortestPath(true);
-        }
     }
 
     private void renderCell(MazeCell cell){
