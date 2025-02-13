@@ -38,6 +38,9 @@ public class Game {
     private boolean showHint = false;
     private boolean showBreadCrumbs = false;
     private boolean showPath = false;
+    private float timePassed = 0;
+    private float score = 0;
+    private List<Float> scoreList = new ArrayList<>();
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -48,12 +51,13 @@ public class Game {
                 "20x20 Maze - f4\n" +
                 "Display High Scores - f5\n" +
                 "Display Credits - f6\n";
+
     }
 
     public void initialize() {
         endCircle = new Texture("resources/images/greencircle.png");
         circle = new Texture("resources/images/bluecircle.png");
-        font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 16, false);
+        font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
 
         setupMaze();
         registerKeys();
@@ -252,7 +256,7 @@ public class Game {
     }
 
     private void drawTextWithNewLines(String text, float top, float left, float width) {
-        String[] stringArr = instructionText.split("\n");
+        String[] stringArr = text.split("\n");
 
         float height = 100f;
         for (String str: stringArr){
@@ -279,7 +283,20 @@ public class Game {
             }
         }
 
+        StringBuilder scoreListBuilder = new StringBuilder();
+        scoreListBuilder.append("High Scores: \n");
+
+        for (float score: scoreList){
+            scoreListBuilder.append(score);
+            scoreListBuilder.append("\n");
+        }
+
+        String timeAndScoreText = "Time " + Float.toString(timePassed) + "\n" +
+                "Score " + Float.toString(score);
+
         drawTextWithNewLines(instructionText, -0.5f, -0.95f, 0.40f);
+        drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, 0.15f);
+        drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.95f, 0.3f);
 
         graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
         graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
