@@ -23,9 +23,8 @@ public class Game {
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
     private Texture circle;
-    private MazeCell characterLocation;
+    private MazeCell characterLocation = new MazeCell(0,0);
     private final KeyboardInput inputKeyboard;
-    private static final float SPRITE_MOVE_RATE_PER_SECOND = 0.40f;    // world coords per second
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -41,30 +40,30 @@ public class Game {
         circle = new Texture("resources/images/circle.jpg");
 
         // Register the inputs we want to have invoked
-        inputKeyboard.registerCommand(GLFW_KEY_W, false, (double elapsedTime) -> {
-            moveUp((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> {
+            moveUp(CELL_SIZE);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_S, false, (double elapsedTime) -> {
-            moveDown((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> {
+            moveDown(CELL_SIZE);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_A, false, (double elapsedTime) -> {
-            moveLeft((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_A, true, (double elapsedTime) -> {
+            moveLeft(CELL_SIZE);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_D, false, (double elapsedTime) -> {
-            moveRight((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_D, true, (double elapsedTime) -> {
+            moveRight(CELL_SIZE);
         });
 
-        inputKeyboard.registerCommand(GLFW_KEY_UP, false, (double elapsedTime) -> {
-            moveUp((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> {
+            moveUp(CELL_SIZE);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_DOWN, false, (double elapsedTime) -> {
-            moveDown((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> {
+            moveDown(CELL_SIZE);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_LEFT, false, (double elapsedTime) -> {
-            moveLeft((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_LEFT, true, (double elapsedTime) -> {
+            moveLeft(CELL_SIZE);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, false, (double elapsedTime) -> {
-            moveRight((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND);
+        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, true, (double elapsedTime) -> {
+            moveRight(CELL_SIZE);
         });
 
         inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> {
@@ -84,7 +83,6 @@ public class Game {
             }
         }
 
-        characterLocation = maze[0][0];
         List<Integer> startCell = List.of(0,0);
         notInMaze.remove(startCell);
         //Add cell to maze, add its neighbors to the frontier
@@ -257,26 +255,31 @@ public class Game {
     }
 
     private void moveUp(float distance) {
-        if (rectCircle.top > -0.5f) {
-            rectCircle.top = Math.max(rectCircle.top - distance, -0.5f);
+        if ((characterLocation.getRow() - 1) >= 0){
+            rectCircle.top = rectCircle.top - distance;
+            characterLocation.setRow(characterLocation.getRow() - 1);
         }
     }
 
     private void moveDown(float distance) {
-        if ((rectCircle.top + rectCircle.height) < 0.5f) {
-            rectCircle.top = Math.min(rectCircle.top + distance, 0.5f);
+        if ((characterLocation.getRow() + 1) < mazeSize){
+            rectCircle.top = rectCircle.top + distance;
+            characterLocation.setRow(characterLocation.getRow() + 1);
         }
     }
 
     private void moveLeft(float distance) {
-        if (rectCircle.left > -0.90f) {
-            rectCircle.left = Math.max(rectCircle.left - distance, -0.90f);
+        if ((characterLocation.getColumn() - 1) >= 0){
+            rectCircle.left = rectCircle.left - distance;
+            characterLocation.setColumn(characterLocation.getColumn() - 1);
         }
+
     }
 
     private void moveRight(float distance) {
-        if ((rectCircle.left + rectCircle.width) < 0.90f) {
-            rectCircle.left = Math.min(rectCircle.left + distance, 0.90f);
+        if ((characterLocation.getColumn() + 1) < mazeSize){
+            rectCircle.left = rectCircle.left + distance;
+            characterLocation.setColumn(characterLocation.getColumn() + 1);
         }
     }
 
