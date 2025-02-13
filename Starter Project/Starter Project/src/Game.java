@@ -17,8 +17,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Game {
     private final Graphics2D graphics;
     private int mazeSize = 3;
-    private final float fMazeSize = (float) mazeSize;
-    private final float CELL_SIZE = 1 / fMazeSize;
+    private float CELL_SIZE;
     private final float CELL_WALL_THICKNESS = 0.002f;
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
@@ -26,7 +25,8 @@ public class Game {
     private final float TEXT_HEIGHT = 0.04f;
     private final String instructionText;
     private MazeCell[][] maze;
-    private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
+    private Rectangle rectCircle;
+    private Rectangle rectCircleEnd;
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)));
     private Texture circle;
     private Texture endCircle;
@@ -81,8 +81,13 @@ public class Game {
                 maze[x][y] = new MazeCell(x,y);
             }
         }
-        this.startLocation = maze[0][0];
-        this.endLocation = maze[maze.length - 1][maze[0].length - 1];
+        startLocation = maze[0][0];
+        endLocation = maze[maze.length - 1][maze[0].length - 1];
+        CELL_SIZE = 1/ (float) mazeSize;
+        rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
+        float bottom = Math.abs(MAZE_TOP) - CELL_SIZE;
+        float right = Math.abs(MAZE_LEFT) - CELL_SIZE;
+        rectCircleEnd = new Rectangle(right, bottom, CELL_SIZE, CELL_SIZE);
     }
     private void registerKeys(){
         // Register the inputs we want to have invoked
@@ -334,7 +339,7 @@ public class Game {
             characterLocation.setScoreComputed(true);
             MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
-            if (characterLocation.equals(endLocation)) {
+            if (characterLocation.getIndex().equals(endLocation.getIndex())) {
                 gameOver = true;
             }
         }
@@ -410,8 +415,6 @@ public class Game {
             drawTextWithNewLines(instructionText, -0.5f, -0.95f, TEXT_HEIGHT);
             drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, TEXT_HEIGHT);
             drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.95f, TEXT_HEIGHT);
-
-            Rectangle rectCircleEnd = new Rectangle(CELL_SIZE*mazeSize, CELL_SIZE*mazeSize, CELL_SIZE, CELL_SIZE);
 
             graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
             graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
