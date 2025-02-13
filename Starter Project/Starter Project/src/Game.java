@@ -16,7 +16,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private final int mazeSize = 3;
+    private final int mazeSize = 20;
     private final float fMazeSize = (float) mazeSize;
     private final float CELL_SIZE = 1 / fMazeSize;
     private final float CELL_WALL_THICKNESS = 0.002f;
@@ -24,6 +24,7 @@ public class Game {
     private final float MAZE_TOP = -0.5f;
     private final float MAZE_BOTTOM = 0.5f - CELL_SIZE;
     private final float MAZE_RIGHT = 0.5f - CELL_SIZE;
+    private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
     private final String instructionText;
     private MazeCell[][] maze;
     private final Rectangle rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
@@ -41,6 +42,7 @@ public class Game {
     private float timePassed = 0;
     private float score = 0;
     private List<Float> scoreList = new ArrayList<>();
+    private Set<MazeCell> originalShortestPath;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -61,6 +63,8 @@ public class Game {
 
         setupMaze();
         registerKeys();
+        originalShortestPath = new HashSet<>(MazeUtils.updateShortestPath(maze, characterLocation, endLocation));
+        originalShortestPath.remove(characterLocation);
     }
 
     private void registerKeys(){
@@ -252,6 +256,10 @@ public class Game {
 
     private void update(double elapsedTime) {
         characterLocation.setVisited(true);
+        if (originalShortestPath.contains(characterLocation)) {
+            score += STEP_ON_SHORTEST_PATH_SCORE;
+            originalShortestPath.remove(characterLocation);
+        }
         MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
     }
 

@@ -2,7 +2,7 @@ import java.util.*;
 
 public class MazeUtils {
 
-    public static void updateShortestPath(MazeCell[][] maze, MazeCell characterLocation, List<Integer> endLocation) {
+    public static List<MazeCell> updateShortestPath(MazeCell[][] maze, MazeCell characterLocation, List<Integer> endLocation) {
         Queue<List<MazeCell>> queue = new ArrayDeque<>();
         Set<List<Integer>> visited = new HashSet<>();
         List<MazeCell> path = new ArrayList<>();
@@ -50,6 +50,8 @@ public class MazeUtils {
         for (MazeCell iCell: path){
             iCell.setOnShortestPath(true);
         }
+
+        return path;
     }
 
     public static Map.Entry<String, List<Integer>> getRandomFromHashMap(HashMap<String, List<Integer>> set){

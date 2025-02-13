@@ -11,6 +11,7 @@ public class MazeCell {
     private boolean visited = false;
     private boolean isOnShortestPath = false;
     private MazeCell previous = null;
+    private int value = 0;
 
     public MazeCell(int row, int column) {
         this.column = column;
@@ -39,7 +40,12 @@ public class MazeCell {
         this.visited = visited;
     }
 
-
+    public int getValue(){
+        return value;
+    }
+    public void setValue(int value){
+        this.value = value;
+    }
     public int getColumn() {
         return column;
     }
