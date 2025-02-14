@@ -1,16 +1,11 @@
-import com.sun.tools.javac.Main;
 import edu.usu.graphics.*;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Font;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
-
-import java.awt.*;
-import java.awt.image.AreaAveragingScaleFilter;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
-import edu.usu.graphics.*;
 import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -274,7 +269,6 @@ public class Game {
             render(graphics.getWindow(), elapsedTime);
         }
     }
-
 
     private void processInput(double elapsedTime) {
         // Poll for window events: required in order for window, keyboard, etc events are captured.
