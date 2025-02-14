@@ -27,15 +27,17 @@ public class Game {
     private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
     private final float TEXT_HEIGHT = 0.04f;
     private final Color TEXT_COLOR = Color.WHITE;
+    private final Color MAZE_COLOR = Color.WHITE;
     private final DecimalFormat decimalFormat = new DecimalFormat("0.##");
     private final String instructionText;
     private MazeCell[][] maze;
     private Rectangle rectCircle;
     private Rectangle rectCircleEnd;
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
-    private Texture circle;
-    private Texture endCircle;
+    private Texture character;
+    private Texture endSignal;
     private Texture bg;
+    private Texture breadCrumb;
     private Font font;
     private MazeCell characterLocation;
     private MazeCell previousLocation;
@@ -64,8 +66,9 @@ public class Game {
     }
 
     public void initialize() {
-        endCircle = new Texture("resources/images/greencircle.png");
-        circle = new Texture("resources/images/bluecircle.png");
+        endSignal = new Texture("resources/images/galaxy.png");
+        character = new Texture("resources/images/alien.png");
+        breadCrumb = new Texture("resources/images/star.png");
         bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
         registerKeys();
@@ -400,8 +403,8 @@ public class Game {
                 drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, TEXT_HEIGHT);
                 drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.95f, TEXT_HEIGHT);
 
-                graphics.draw(circle, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
-                graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
+                graphics.draw(character, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
+                graphics.draw(endSignal, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
             }
             case CREDITS -> {
                 graphics.drawTextByHeight(font, "Made by Isaac Peterson", MENU_LEFT, MENU_TOP, TEXT_HEIGHT, Color.BLACK);
@@ -425,7 +428,7 @@ public class Game {
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
             Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
 
-            graphics.draw(r, Color.YELLOW);
+            graphics.draw(r, MAZE_COLOR);
 
         }
         if (cell.getBottom() == null){
@@ -433,7 +436,7 @@ public class Game {
             float top = MAZE_TOP + (cell.getRow() + 1) * CELL_SIZE;
             Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
 
-            graphics.draw(r, Color.YELLOW);
+            graphics.draw(r, MAZE_COLOR);
 
         }
         if (cell.getLeft() == null){
@@ -441,47 +444,35 @@ public class Game {
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
             Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_SIZE);
 
-            graphics.draw(r, Color.YELLOW);
+            graphics.draw(r, MAZE_COLOR);
         }
         if (cell.getRight() == null){
             float left = MAZE_LEFT + (cell.getColumn() + 1) * CELL_SIZE;
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
             Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_SIZE);
 
-            graphics.draw(r, Color.YELLOW);
+            graphics.draw(r, MAZE_COLOR);
         }
 
-        float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-        float top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-        Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_WALL_THICKNESS);
-        graphics.draw(r, Color.CORNFLOWER_BLUE);
+        if (!cell.getIndex().equals(characterLocation.getIndex())){
+            boolean drawBreadCrumb = cell.isVisited() & showBreadCrumbs & !(showPath & cell.isOnShortestPath());
+            boolean showNeighborHint = cell.isOnShortestPath() & MazeUtils.areNeighbors(cell, characterLocation) & showHint & !showPath;
+            boolean showShortestPath = cell.isOnShortestPath() & showPath;
 
-        float dotSize = CELL_WALL_THICKNESS*3;
+            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/4.0f)*CELL_SIZE;
+            float top = MAZE_TOP + cell.getRow() * CELL_SIZE + (1.0f/4.0f)*CELL_SIZE;
+            float size = (1.0f/2.0f)*CELL_SIZE;
 
-        if (cell.isVisited() & showBreadCrumbs){
-            left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            r = new Rectangle(left, top, dotSize, dotSize);
-
-            graphics.draw(r, Color.YELLOW);
-        }
-
-        if (cell.isOnShortestPath() & showPath){
-            left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-            r = new Rectangle(left, top, dotSize, dotSize);
-
-            graphics.draw(r, Color.BLUE);
-        }
-
-        if (cell.isOnShortestPath() & showHint){
-            if (MazeUtils.areNeighbors(characterLocation, cell)){
-                left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-                top = MAZE_LEFT + cell.getRow() * CELL_SIZE + (1.0f/2.1f)*CELL_SIZE;
-                r = new Rectangle(left, top, dotSize, dotSize);
-
-                graphics.draw(r, Color.BLUE);
+            if (drawBreadCrumb){
+                Rectangle r = new Rectangle(left, top, size, size);
+                graphics.draw(breadCrumb, r, Color.WHITE);
+            }
+            else if (showNeighborHint | showShortestPath){
+                Rectangle r = new Rectangle(left, top, size, size);
+                graphics.draw(breadCrumb, r, Color.WHITE);
             }
         }
+
+
     }
 }
