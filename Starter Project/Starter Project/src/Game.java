@@ -7,6 +7,7 @@ import edu.usu.graphics.Rectangle;
 
 import java.awt.*;
 import java.awt.image.AreaAveragingScaleFilter;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import edu.usu.graphics.*;
@@ -25,11 +26,13 @@ public class Game {
     private final float MENU_TOP = -0.2f;
     private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
     private final float TEXT_HEIGHT = 0.04f;
+    private final Color TEXT_COLOR = Color.BLACK;
+    private final DecimalFormat decimalFormat = new DecimalFormat("0.##");
     private final String instructionText;
     private MazeCell[][] maze;
     private Rectangle rectCircle;
     private Rectangle rectCircleEnd;
-    private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)));
+    private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
     private Texture circle;
     private Texture endCircle;
     private Texture bg;
@@ -58,7 +61,6 @@ public class Game {
                 "Display High Scores - f5\n" +
                 "Display Credits - f6\n" +
                 "Go to Menu - Backspace";
-
     }
 
     public void initialize() {
@@ -70,6 +72,8 @@ public class Game {
     }
 
     public void startGame(){
+        score = 0;
+        timePassed = 0;
         initMaze();
         setupMaze();
         originalShortestPath = new HashSet<>(MazeUtils.updateShortestPath(maze, characterLocation, endLocation));
@@ -352,7 +356,7 @@ public class Game {
         int idx = 0;
         for (String str: stringArr){
             float newTop = top + (idx * height);
-            graphics.drawTextByHeight(font, str, left, newTop, height, Color.BLACK);
+            graphics.drawTextByHeight(font, str, left, newTop, height, TEXT_COLOR);
             idx++;
         }
     }
@@ -370,10 +374,10 @@ public class Game {
             }
             case ENDGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
+                graphics.draw(displayRect, Color.WHITE);
                 menuBuilder.append("Game Over, Score:").append(score).append("\n");
                 menuBuilder.append(instructionText);
                 drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
-                score = 0;
             }
             case PLAYGAME -> {
                 graphics.draw(bg, displayRect, Color.WHITE);
@@ -391,7 +395,7 @@ public class Game {
                     scoreListBuilder.append(score);
                 }
 
-                String timeAndScoreText = "Time " + timePassed + "\n" +
+                String timeAndScoreText = "Time " + decimalFormat.format(timePassed)  + "\n" +
                         "Score " + score;
 
                 drawTextWithNewLines(instructionText, -0.5f, -0.95f, TEXT_HEIGHT);
@@ -414,7 +418,7 @@ public class Game {
                 for (String score: scoreList){
                     scoreListBuilder.append(score);
                 }
-                drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
+                drawTextWithNewLines(scoreListBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
             }
         }
         graphics.end();
