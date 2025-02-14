@@ -25,7 +25,7 @@ public class Game {
     private final float MENU_LEFT = -0.2f;
     private final float MENU_TOP = -0.2f;
     private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
-    private final float TEXT_HEIGHT = 0.04f;
+    private final float TEXT_HEIGHT = 0.038f;
     private final Color TEXT_COLOR = Color.WHITE;
     private final Color MAZE_COLOR = Color.WHITE;
     private final DecimalFormat decimalFormat = new DecimalFormat("0.##");
@@ -301,6 +301,11 @@ public class Game {
 
 
     public void shutdown() {
+        character.cleanup();
+        endSignal.cleanup();
+        bg.cleanup();
+        breadCrumb.cleanup();
+        hint.cleanup();
     }
 
     public void run() {
@@ -349,7 +354,7 @@ public class Game {
             MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
             if (characterLocation.getIndex().equals(endLocation.getIndex())) {
-                scoreList.add("Score: " + Float.toString(score) + ", Maze Size: " + Integer.toString(mazeSize) + "\n");
+                scoreList.add("Score: " + Float.toString(score) + ",    Maze Size: " + Integer.toString(mazeSize) + "\n");
                 gameState = GameState.ENDGAME;
             }
         }
@@ -401,9 +406,9 @@ public class Game {
                 String timeAndScoreText = "Time " + decimalFormat.format(timePassed)  + "\n" +
                         "Score " + score;
 
-                drawTextWithNewLines(instructionText, -0.5f, -0.95f, TEXT_HEIGHT);
+                drawTextWithNewLines(instructionText, -0.5f, -0.97f, TEXT_HEIGHT);
                 drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, TEXT_HEIGHT);
-                drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.95f, TEXT_HEIGHT);
+                drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.97f, TEXT_HEIGHT);
 
                 graphics.draw(character, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
                 graphics.draw(endSignal, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
@@ -425,6 +430,7 @@ public class Game {
     }
 
     private void renderCell(MazeCell cell){
+        //Update cell's maze walls
         if (cell.getTop() == null){
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
@@ -456,6 +462,7 @@ public class Game {
             graphics.draw(r, MAZE_COLOR);
         }
 
+        //Only update the cell if its not the character's cell or the end cell
         if (!cell.getIndex().equals(characterLocation.getIndex()) &
             !cell.getIndex().equals(endLocation.getIndex())){
             boolean showShortestPath = cell.isOnShortestPath() & showPath;
