@@ -26,7 +26,7 @@ public class Game {
     private final float MENU_TOP = -0.2f;
     private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
     private final float TEXT_HEIGHT = 0.04f;
-    private final Color TEXT_COLOR = Color.BLACK;
+    private final Color TEXT_COLOR = Color.WHITE;
     private final DecimalFormat decimalFormat = new DecimalFormat("0.##");
     private final String instructionText;
     private MazeCell[][] maze;
@@ -367,14 +367,12 @@ public class Game {
         switch (gameState){
             case STARTGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
-                graphics.draw(displayRect, Color.WHITE);
                 menuBuilder.append("Welcome to the maze game\n");
                 menuBuilder.append(instructionText);
                 drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
             }
             case ENDGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
-                graphics.draw(displayRect, Color.WHITE);
                 menuBuilder.append("Game Over, Score:").append(score).append("\n");
                 menuBuilder.append(instructionText);
                 drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
@@ -406,12 +404,9 @@ public class Game {
                 graphics.draw(endCircle, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
             }
             case CREDITS -> {
-                graphics.draw(displayRect, Color.WHITE);
                 graphics.drawTextByHeight(font, "Made by Isaac Peterson", MENU_LEFT, MENU_TOP, TEXT_HEIGHT, Color.BLACK);
             }
             case HIGHSCORES -> {
-                graphics.draw(displayRect, Color.WHITE);
-
                 StringBuilder scoreListBuilder = new StringBuilder();
                 scoreListBuilder.append("High Scores: \n");
 
