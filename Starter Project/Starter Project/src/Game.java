@@ -80,7 +80,7 @@ public class Game {
         score = 0;
         timePassed = 0;
         initMaze();
-        setupMaze();
+        MazeUtils.setupMaze(maze);
         originalShortestPath = new HashSet<>(MazeUtils.updateShortestPath(maze, characterLocation, endLocation));
         originalShortestPath.remove(characterLocation);
     }
@@ -93,6 +93,8 @@ public class Game {
             }
         }
         startLocation = maze[0][0];
+        characterLocation = maze[0][0];
+        characterLocation.setVisited(true);
         endLocation = maze[maze.length - 1][maze[0].length - 1];
         CELL_SIZE = 1/ (float) mazeSize;
         rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
@@ -103,36 +105,45 @@ public class Game {
     private void registerKeys(){
         // Register the inputs we want to have invoked
         inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> {
-            moveUp(CELL_SIZE);
+            makeMove(Movement.UP);
         });
         inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> {
-            moveDown(CELL_SIZE);
+            makeMove(Movement.DOWN);
         });
         inputKeyboard.registerCommand(GLFW_KEY_A, true, (double elapsedTime) -> {
-            moveLeft(CELL_SIZE);
+            makeMove(Movement.LEFT);
         });
         inputKeyboard.registerCommand(GLFW_KEY_D, true, (double elapsedTime) -> {
-            moveRight(CELL_SIZE);
+            makeMove(Movement.RIGHT);
         });
-
+        inputKeyboard.registerCommand(GLFW_KEY_I, true, (double elapsedTime) -> {
+            makeMove(Movement.UP);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_K, true, (double elapsedTime) -> {
+            makeMove(Movement.DOWN);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_J, true, (double elapsedTime) -> {
+            makeMove(Movement.LEFT);
+        });
+        inputKeyboard.registerCommand(GLFW_KEY_L, true, (double elapsedTime) -> {
+            makeMove(Movement.RIGHT);
+        });
         inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> {
-            moveUp(CELL_SIZE);
+            makeMove(Movement.UP);
         });
         inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> {
-            moveDown(CELL_SIZE);
+            makeMove(Movement.DOWN);
         });
         inputKeyboard.registerCommand(GLFW_KEY_LEFT, true, (double elapsedTime) -> {
-            moveLeft(CELL_SIZE);
+            makeMove(Movement.LEFT);
         });
         inputKeyboard.registerCommand(GLFW_KEY_RIGHT, true, (double elapsedTime) -> {
-            moveRight(CELL_SIZE);
+            makeMove(Movement.RIGHT);
         });
 
         inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> {
             glfwSetWindowShouldClose(graphics.getWindow(), true);
         });
-
-
         inputKeyboard.registerCommand(GLFW_KEY_P, true, (double elapsedTime) -> {
             showPath = !showPath;
         });
@@ -182,122 +193,61 @@ public class Game {
         });
     }
 
-    private void setupMaze(){
-        Set<List<Integer>> notInMaze = new HashSet<>();
-        Set<List<Integer>> frontier = new HashSet<>();
-
-        for (int x = 0; x < mazeSize; x++) {
-            for (int y = 0; y < mazeSize; y++) {
-                maze[x][y] = new MazeCell(x,y);
-                notInMaze.add(List.of(x, y));
+    private void makeMove(Movement move){
+        previousLocation = characterLocation;
+        switch(move){
+            case UP -> {
+                if ((characterLocation.getRow() - 1) >= 0 &&
+                        characterLocation.getTop() != null){
+                    rectCircle.top = rectCircle.top - CELL_SIZE;
+                    characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
+                }
+            }
+            case DOWN -> {
+                if ((characterLocation.getRow() + 1) < mazeSize &&
+                        characterLocation.getBottom() != null){
+                    rectCircle.top = rectCircle.top + CELL_SIZE;
+                    characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
+                }
+            }
+            case LEFT -> {
+                if ((characterLocation.getColumn() - 1) >= 0 &&
+                        characterLocation.getLeft() != null){
+                    rectCircle.left = rectCircle.left - CELL_SIZE;
+                    characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
+                }
+            }
+            case RIGHT -> {
+                if ((characterLocation.getColumn() + 1) < mazeSize &&
+                        characterLocation.getRight() != null){
+                    rectCircle.left = rectCircle.left + CELL_SIZE;
+                    characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
+                }
             }
         }
 
-        characterLocation = maze[0][0];
+        previousLocation.setScoreComputed(false);
+        if (originalShortestPath.contains(characterLocation)) {
+            score += STEP_ON_SHORTEST_PATH_SCORE;
+            originalShortestPath.remove(characterLocation);
+        }
+        else{
+            if (!characterLocation.equals(startLocation) &
+                    !characterLocation.isScoreComputed() &
+                    !characterLocation.isVisited()) {
+                score -= 1;
+            }
+        }
         characterLocation.setVisited(true);
-        List<Integer> startCell = List.of(0,0);
-        notInMaze.remove(startCell);
-        //Add cell to maze, add its neighbors to the frontier
-        notInMaze.remove(startCell);
+        characterLocation.setScoreComputed(true);
+        MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
-        HashMap<String, List<Integer>> neighbors = MazeUtils.getNeighbors(startCell, mazeSize);
-        for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
-            frontier.add(entry.getValue());
-        }
-
-        while (!notInMaze.isEmpty()) {
-            //Now select a cell from the frontier and add it to the maze
-            List<Integer> frontierCell = MazeUtils.getRandomFromHashSet(frontier);
-            notInMaze.remove(frontierCell);
-            frontier.remove(frontierCell);
-
-            //Get neighbors of selected frontier cell
-            HashMap<String, List<Integer>> frontierNeighbors = MazeUtils.getNeighbors(frontierCell, mazeSize);
-
-            //Get the neighbors of the frontier cell that are in the maze, add neighbors not in maze to frontier
-            HashMap<String, List<Integer>> frontierNeighborsInMaze = new HashMap<>();
-            for (Map.Entry<String, List<Integer>> entry: frontierNeighbors.entrySet()) {
-                if (!notInMaze.contains(entry.getValue())) {
-                    frontierNeighborsInMaze.put(entry.getKey(), entry.getValue());
-                }
-                else{
-                    frontier.add(entry.getValue());
-                }
-            }
-
-            //Randomly select one of the frontier neighbors in the maze to connect to
-            Map.Entry<String, List<Integer>> randomNeighbor = MazeUtils.getRandomFromHashMap(frontierNeighborsInMaze);
-
-            //Now connect the frontier cell with that random neighbor
-            List<Integer> randomNeighborIdx = randomNeighbor.getValue();
-
-            switch (randomNeighbor.getKey()) {
-                case "Top" -> {
-                    maze[frontierCell.getFirst()][frontierCell.getLast()]
-                            .setTop(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
-                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setBottom(maze[frontierCell.getFirst()][frontierCell.getLast()]);
-                }
-                case "Bottom" -> {
-                    maze[frontierCell.getFirst()][frontierCell.getLast()]
-                            .setBottom(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
-                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setTop(maze[frontierCell.getFirst()][frontierCell.getLast()]);
-                }
-                case "Left" -> {
-                    maze[frontierCell.getFirst()][frontierCell.getLast()]
-                            .setLeft(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
-                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setRight(maze[frontierCell.getFirst()][frontierCell.getLast()]);
-                }
-                case "Right" -> {
-                    maze[frontierCell.getFirst()][frontierCell.getLast()]
-                            .setRight(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
-                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
-                            .setLeft(maze[frontierCell.getFirst()][frontierCell.getLast()]);
-                }
-            }
-            notInMaze.remove(randomNeighborIdx);
-            frontier.remove(randomNeighborIdx);
-        }
-        MazeUtils.cliRender(maze);
-    }
-
-    private void moveUp(float distance) {
-        previousLocation = characterLocation;
-        if ((characterLocation.getRow() - 1) >= 0 &&
-        characterLocation.getTop() != null){
-            rectCircle.top = rectCircle.top - distance;
-            characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
+        if (characterLocation.getIndex().equals(endLocation.getIndex())) {
+            scoreList.add("Score: " + Float.toString(score) + ",    Maze Size: " + Integer.toString(mazeSize) + "\n");
+            gameState = GameState.ENDGAME;
         }
     }
 
-    private void moveDown(float distance) {
-        previousLocation = characterLocation;
-        if ((characterLocation.getRow() + 1) < mazeSize &&
-        characterLocation.getBottom() != null){
-            rectCircle.top = rectCircle.top + distance;
-            characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
-        }
-    }
-
-    private void moveLeft(float distance) {
-        previousLocation = characterLocation;
-        if ((characterLocation.getColumn() - 1) >= 0 &&
-        characterLocation.getLeft() != null){
-            rectCircle.left = rectCircle.left - distance;
-            characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
-        }
-    }
-
-    private void moveRight(float distance) {
-        previousLocation = characterLocation;
-        if ((characterLocation.getColumn() + 1) < mazeSize &&
-                characterLocation.getRight() != null){
-            rectCircle.left = rectCircle.left + distance;
-            characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
-        }
-    }
 
 
     public void shutdown() {
@@ -335,28 +285,7 @@ public class Game {
     private void update(double elapsedTime) {
         if (gameState == GameState.PLAYGAME){
             timePassed += elapsedTime;
-            if (previousLocation != null) {
-                previousLocation.setScoreComputed(false);
-            }
-            if (originalShortestPath.contains(characterLocation)) {
-                score += STEP_ON_SHORTEST_PATH_SCORE;
-                originalShortestPath.remove(characterLocation);
-            }
-            else{
-                if (!characterLocation.equals(startLocation) &
-                        !characterLocation.isScoreComputed() &
-                        !characterLocation.isVisited()) {
-                    score -= 1;
-                }
-            }
-            characterLocation.setVisited(true);
-            characterLocation.setScoreComputed(true);
-            MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
-            if (characterLocation.getIndex().equals(endLocation.getIndex())) {
-                scoreList.add("Score: " + Float.toString(score) + ",    Maze Size: " + Integer.toString(mazeSize) + "\n");
-                gameState = GameState.ENDGAME;
-            }
         }
     }
 

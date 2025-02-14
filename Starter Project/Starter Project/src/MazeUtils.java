@@ -2,6 +2,83 @@ import java.util.*;
 
 public class MazeUtils {
 
+    public static void setupMaze(MazeCell[][] maze) {
+        int mazeSize = maze.length;
+        Set<List<Integer>> notInMaze = new HashSet<>();
+        Set<List<Integer>> frontier = new HashSet<>();
+
+        for (int x = 0; x < mazeSize; x++) {
+            for (int y = 0; y < mazeSize; y++) {
+                notInMaze.add(List.of(x, y));
+            }
+        }
+
+        List<Integer> startCell = List.of(0,0);
+        //Add cell to maze, add its neighbors to the frontier
+        notInMaze.remove(startCell);
+
+        HashMap<String, List<Integer>> neighbors = MazeUtils.getNeighbors(startCell, mazeSize);
+        for (Map.Entry<String, List<Integer>> entry: neighbors.entrySet()) {
+            frontier.add(entry.getValue());
+        }
+
+        while (!notInMaze.isEmpty()) {
+            //Now select a cell from the frontier and add it to the maze
+            List<Integer> frontierCell = MazeUtils.getRandomFromHashSet(frontier);
+            notInMaze.remove(frontierCell);
+            frontier.remove(frontierCell);
+
+            //Get neighbors of selected frontier cell
+            HashMap<String, List<Integer>> frontierNeighbors = MazeUtils.getNeighbors(frontierCell, mazeSize);
+
+            //Get the neighbors of the frontier cell that are in the maze, add neighbors not in maze to frontier
+            HashMap<String, List<Integer>> frontierNeighborsInMaze = new HashMap<>();
+            for (Map.Entry<String, List<Integer>> entry: frontierNeighbors.entrySet()) {
+                if (!notInMaze.contains(entry.getValue())) {
+                    frontierNeighborsInMaze.put(entry.getKey(), entry.getValue());
+                }
+                else{
+                    frontier.add(entry.getValue());
+                }
+            }
+
+            //Randomly select one of the frontier neighbors in the maze to connect to
+            Map.Entry<String, List<Integer>> randomNeighbor = MazeUtils.getRandomFromHashMap(frontierNeighborsInMaze);
+
+            //Now connect the frontier cell with that random neighbor
+            List<Integer> randomNeighborIdx = randomNeighbor.getValue();
+
+            switch (randomNeighbor.getKey()) {
+                case "Top" -> {
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
+                            .setTop(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
+                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
+                            .setBottom(maze[frontierCell.getFirst()][frontierCell.getLast()]);
+                }
+                case "Bottom" -> {
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
+                            .setBottom(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
+                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
+                            .setTop(maze[frontierCell.getFirst()][frontierCell.getLast()]);
+                }
+                case "Left" -> {
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
+                            .setLeft(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
+                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
+                            .setRight(maze[frontierCell.getFirst()][frontierCell.getLast()]);
+                }
+                case "Right" -> {
+                    maze[frontierCell.getFirst()][frontierCell.getLast()]
+                            .setRight(maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]);
+                    maze[randomNeighborIdx.getFirst()][randomNeighborIdx.getLast()]
+                            .setLeft(maze[frontierCell.getFirst()][frontierCell.getLast()]);
+                }
+            }
+            notInMaze.remove(randomNeighborIdx);
+            frontier.remove(randomNeighborIdx);
+        }
+    }
+
     public static List<MazeCell> updateShortestPath(MazeCell[][] maze, MazeCell characterLocation, MazeCell endLocation) {
         Queue<List<MazeCell>> queue = new ArrayDeque<>();
         Set<List<Integer>> visited = new HashSet<>();
