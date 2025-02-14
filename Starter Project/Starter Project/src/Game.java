@@ -312,7 +312,11 @@ public class Game {
             }
             case ENDGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
-                menuBuilder.append("Finished Maze,    Score:").append(score).append("\n\n");
+                menuBuilder.append("Finished Maze\nScore:")
+                        .append(score)
+                        .append("\nTime:")
+                        .append(decimalFormat.format(timePassed))
+                        .append("\n\n");
                 menuBuilder.append(instructionText);
                 drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
             }
