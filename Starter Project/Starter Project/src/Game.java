@@ -21,6 +21,8 @@ public class Game {
     private final float CELL_WALL_THICKNESS = 0.002f;
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
+    private final float MENU_LEFT = -0.2f;
+    private final float MENU_TOP = -0.2f;
     private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
     private final float TEXT_HEIGHT = 0.04f;
     private final String instructionText;
@@ -30,6 +32,7 @@ public class Game {
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)));
     private Texture circle;
     private Texture endCircle;
+    private Texture bg;
     private Font font;
     private MazeCell characterLocation;
     private MazeCell previousLocation;
@@ -39,9 +42,9 @@ public class Game {
     private boolean showHint = false;
     private boolean showBreadCrumbs = false;
     private boolean showPath = false;
-    private float timePassed = 0;
+    private double timePassed = 0;
     private float score = 0;
-    private List<Float> scoreList = new ArrayList<>();
+    private List<String> scoreList = new ArrayList<>();
     private Set<MazeCell> originalShortestPath;
     private GameState gameState = GameState.STARTGAME;
 
@@ -61,6 +64,7 @@ public class Game {
     public void initialize() {
         endCircle = new Texture("resources/images/greencircle.png");
         circle = new Texture("resources/images/bluecircle.png");
+        bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
         registerKeys();
     }
@@ -316,6 +320,7 @@ public class Game {
 
     private void update(double elapsedTime) {
         if (gameState == GameState.PLAYGAME){
+            timePassed += elapsedTime;
             if (previousLocation != null) {
                 previousLocation.setScoreComputed(false);
             }
@@ -335,6 +340,7 @@ public class Game {
             MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
             if (characterLocation.getIndex().equals(endLocation.getIndex())) {
+                scoreList.add("Score: " + Float.toString(score) + ", Maze Size: " + Integer.toString(mazeSize) + "\n");
                 gameState = GameState.ENDGAME;
             }
         }
@@ -360,17 +366,18 @@ public class Game {
                 graphics.draw(displayRect, Color.WHITE);
                 menuBuilder.append("Welcome to the maze game\n");
                 menuBuilder.append(instructionText);
-                drawTextWithNewLines(menuBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
+                drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
             }
             case ENDGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
-                scoreList.add(score);
                 menuBuilder.append("Game Over, Score:").append(score).append("\n");
                 menuBuilder.append(instructionText);
-                drawTextWithNewLines(menuBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
+                drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
                 score = 0;
             }
             case PLAYGAME -> {
+                graphics.draw(bg, displayRect, Color.WHITE);
+
                 for (var row: maze){
                     for (var cell:row){
                         renderCell(cell);
@@ -380,13 +387,12 @@ public class Game {
                 StringBuilder scoreListBuilder = new StringBuilder();
                 scoreListBuilder.append("High Scores: \n");
 
-                for (float score: scoreList){
+                for (String score: scoreList){
                     scoreListBuilder.append(score);
-                    scoreListBuilder.append("\n");
                 }
 
-                String timeAndScoreText = "Time " + Float.toString(timePassed) + "\n" +
-                        "Score " + Float.toString(score);
+                String timeAndScoreText = "Time " + timePassed + "\n" +
+                        "Score " + score;
 
                 drawTextWithNewLines(instructionText, -0.5f, -0.95f, TEXT_HEIGHT);
                 drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, TEXT_HEIGHT);
@@ -397,7 +403,7 @@ public class Game {
             }
             case CREDITS -> {
                 graphics.draw(displayRect, Color.WHITE);
-                graphics.drawTextByHeight(font, "Made by Isaac Peterson", -0.1f, -0.1f, TEXT_HEIGHT, Color.BLACK);
+                graphics.drawTextByHeight(font, "Made by Isaac Peterson", MENU_LEFT, MENU_TOP, TEXT_HEIGHT, Color.BLACK);
             }
             case HIGHSCORES -> {
                 graphics.draw(displayRect, Color.WHITE);
@@ -405,9 +411,8 @@ public class Game {
                 StringBuilder scoreListBuilder = new StringBuilder();
                 scoreListBuilder.append("High Scores: \n");
 
-                for (float score: scoreList){
+                for (String score: scoreList){
                     scoreListBuilder.append(score);
-                    scoreListBuilder.append("\n");
                 }
                 drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.1f, TEXT_HEIGHT);
             }
