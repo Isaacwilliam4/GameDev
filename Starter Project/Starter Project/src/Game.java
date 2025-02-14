@@ -38,6 +38,7 @@ public class Game {
     private Texture endSignal;
     private Texture bg;
     private Texture breadCrumb;
+    private Texture hint;
     private Font font;
     private MazeCell characterLocation;
     private MazeCell previousLocation;
@@ -69,6 +70,7 @@ public class Game {
         endSignal = new Texture("resources/images/galaxy.png");
         character = new Texture("resources/images/alien.png");
         breadCrumb = new Texture("resources/images/star.png");
+        hint = new Texture("resources/images/rocket.png");
         bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
         registerKeys();
@@ -370,13 +372,13 @@ public class Game {
         switch (gameState){
             case STARTGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
-                menuBuilder.append("Welcome to the maze game\n");
+                menuBuilder.append("Welcome to the maze game\n\n");
                 menuBuilder.append(instructionText);
                 drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
             }
             case ENDGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
-                menuBuilder.append("Game Over, Score:").append(score).append("\n");
+                menuBuilder.append("Finished Maze,    Score:").append(score).append("\n\n");
                 menuBuilder.append(instructionText);
                 drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
             }
@@ -407,7 +409,7 @@ public class Game {
                 graphics.draw(endSignal, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
             }
             case CREDITS -> {
-                graphics.drawTextByHeight(font, "Made by Isaac Peterson", MENU_LEFT, MENU_TOP, TEXT_HEIGHT, Color.BLACK);
+                graphics.drawTextByHeight(font, "Made by Isaac Peterson", MENU_LEFT, MENU_TOP, TEXT_HEIGHT, TEXT_COLOR);
             }
             case HIGHSCORES -> {
                 StringBuilder scoreListBuilder = new StringBuilder();
@@ -454,10 +456,14 @@ public class Game {
             graphics.draw(r, MAZE_COLOR);
         }
 
-        if (!cell.getIndex().equals(characterLocation.getIndex())){
-            boolean drawBreadCrumb = cell.isVisited() & showBreadCrumbs & !(showPath & cell.isOnShortestPath());
-            boolean showNeighborHint = cell.isOnShortestPath() & MazeUtils.areNeighbors(cell, characterLocation) & showHint & !showPath;
+        if (!cell.getIndex().equals(characterLocation.getIndex()) &
+            !cell.getIndex().equals(endLocation.getIndex())){
             boolean showShortestPath = cell.isOnShortestPath() & showPath;
+            boolean showNeighborHint = cell.isOnShortestPath() &
+                    MazeUtils.areNeighbors(cell, characterLocation) &
+                    !showShortestPath &
+                    showHint;
+            boolean drawBreadCrumb = cell.isVisited() & showBreadCrumbs & !showNeighborHint & !showShortestPath;
 
             float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/4.0f)*CELL_SIZE;
             float top = MAZE_TOP + cell.getRow() * CELL_SIZE + (1.0f/4.0f)*CELL_SIZE;
@@ -469,7 +475,7 @@ public class Game {
             }
             else if (showNeighborHint | showShortestPath){
                 Rectangle r = new Rectangle(left, top, size, size);
-                graphics.draw(breadCrumb, r, Color.WHITE);
+                graphics.draw(hint, r, Color.WHITE);
             }
         }
 
