@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.w3c.dom.css.Rect;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -85,7 +86,7 @@ public class Game {
         List<Vector2f> terrain = new ArrayList<>();
         terrain.add(new Vector2f(-1, 0));
         terrain.add(new Vector2f(1, 0));
-        this.terrain = GameUtils.splitTerrain(terrain,  0.1f, 0.1f);
+        this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.25f);
     }
     private void registerKeys() {
         inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
@@ -327,6 +328,8 @@ public class Game {
             }
             case PLAYGAME -> {
                 renderTerrain();
+//                Rectangle r = new Rectangle(-1f, -0.5f, 0.1f, 0.1f);
+//                graphics.draw(r, Color.RED);
             }
         }
         graphics.end();

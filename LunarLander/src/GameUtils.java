@@ -5,16 +5,20 @@ import java.util.*;
 public class GameUtils {
     public static List<Vector2f> splitTerrain(List<Vector2f> terrain,
                                         float minDist,
-                                        float roughnessFactor){
+                                        float roughnessFactor
+    ){
         List<Vector2f> newTerrain = new ArrayList<>(terrain);
         Vector2f left = terrain.get(0);
         Vector2f right = terrain.get(1);
-        if (Math.abs(left.x - right.x) < minDist){
+            if (Math.abs(left.x - right.x) < minDist){
             return terrain;
         }
         Random rand = new Random();
-        float val = rand.nextFloat();
-        float y = val*roughnessFactor;
+        float val = (float) rand.nextGaussian();
+
+        float r = roughnessFactor * val * Math.abs(left.x - right.x);
+        float y = 0.5f*(left.y + right.y) + r;
+
         Vector2f midPoint = new Vector2f((left.x + right.x) / 2f, y);
         int midpointIdx = 1;
         newTerrain.add(midpointIdx, midPoint);
