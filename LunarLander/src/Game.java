@@ -47,7 +47,8 @@ public class Game {
     private float score = 0;
     private List<String> scoreList = new ArrayList<>();
     private Set<MazeCell> originalShortestPath;
-    private GameState gameState = GameState.STARTGAME;
+    private GameState gameState = GameState.MENU;
+    private Menu menuSelect = Menu.PLAYGAME;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -97,13 +98,36 @@ public class Game {
         float right = Math.abs(MAZE_LEFT) - CELL_SIZE;
         rectCircleEnd = new Rectangle(right, bottom, CELL_SIZE, CELL_SIZE);
     }
-    private void registerKeys(){
+    private void registerKeys() {
+        inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
+            if (gameState == GameState.MENU){
+                switch (menuSelect) {
+                    case PLAYGAME -> {
+                        gameState = GameState.PLAYGAME;
+                        startGame();
+                    }
+                    case HIGHSCORES -> gameState = GameState.HIGHSCORES;
+                    case CUSTOMIZECONTROLS -> gameState = GameState.CUSTOMIZECONTROLS;
+                    case CREDITS -> gameState = GameState.CREDITS;
+                }
+            }
+        });
         // Register the inputs we want to have invoked
         inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> {
-            makeMove(Movement.UP);
+            if (gameState == GameState.MENU) {
+                menuSelect = menuSelect.previous();
+            }
+            else{
+                makeMove(Movement.UP);
+            }
         });
         inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> {
-            makeMove(Movement.DOWN);
+            if (gameState == GameState.MENU) {
+                menuSelect = menuSelect.next();
+            }
+            else{
+                makeMove(Movement.DOWN);
+            }
         });
         inputKeyboard.registerCommand(GLFW_KEY_A, true, (double elapsedTime) -> {
             makeMove(Movement.LEFT);
@@ -124,10 +148,20 @@ public class Game {
             makeMove(Movement.RIGHT);
         });
         inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> {
-            makeMove(Movement.UP);
+            if (gameState == GameState.MENU) {
+                menuSelect = menuSelect.previous();
+            }
+            else{
+                makeMove(Movement.UP);
+            }
         });
         inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> {
-            makeMove(Movement.DOWN);
+            if (gameState == GameState.MENU) {
+                menuSelect = menuSelect.next();
+            }
+            else{
+                makeMove(Movement.DOWN);
+            }
         });
         inputKeyboard.registerCommand(GLFW_KEY_LEFT, true, (double elapsedTime) -> {
             makeMove(Movement.LEFT);
@@ -152,7 +186,7 @@ public class Game {
         });
 
         inputKeyboard.registerCommand(GLFW_KEY_BACKSPACE, true, (double elapsedTime) -> {
-            gameState = GameState.STARTGAME;
+            gameState = GameState.MENU;
         });
 
         inputKeyboard.registerCommand(GLFW_KEY_F1, true, (double elapsedTime) -> {
@@ -189,57 +223,59 @@ public class Game {
     }
 
     private void makeMove(Movement move){
-        previousLocation = characterLocation;
-        switch(move){
-            case UP -> {
-                if ((characterLocation.getRow() - 1) >= 0 &&
-                        characterLocation.getTop() != null){
-                    rectCircle.top = rectCircle.top - CELL_SIZE;
-                    characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
+        if (gameState != GameState.MENU) {
+            previousLocation = characterLocation;
+            switch(move){
+                case UP -> {
+                    if ((characterLocation.getRow() - 1) >= 0 &&
+                            characterLocation.getTop() != null){
+                        rectCircle.top = rectCircle.top - CELL_SIZE;
+                        characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
+                    }
+                }
+                case DOWN -> {
+                    if ((characterLocation.getRow() + 1) < mazeSize &&
+                            characterLocation.getBottom() != null){
+                        rectCircle.top = rectCircle.top + CELL_SIZE;
+                        characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
+                    }
+                }
+                case LEFT -> {
+                    if ((characterLocation.getColumn() - 1) >= 0 &&
+                            characterLocation.getLeft() != null){
+                        rectCircle.left = rectCircle.left - CELL_SIZE;
+                        characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
+                    }
+                }
+                case RIGHT -> {
+                    if ((characterLocation.getColumn() + 1) < mazeSize &&
+                            characterLocation.getRight() != null){
+                        rectCircle.left = rectCircle.left + CELL_SIZE;
+                        characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
+                    }
                 }
             }
-            case DOWN -> {
-                if ((characterLocation.getRow() + 1) < mazeSize &&
-                        characterLocation.getBottom() != null){
-                    rectCircle.top = rectCircle.top + CELL_SIZE;
-                    characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
-                }
-            }
-            case LEFT -> {
-                if ((characterLocation.getColumn() - 1) >= 0 &&
-                        characterLocation.getLeft() != null){
-                    rectCircle.left = rectCircle.left - CELL_SIZE;
-                    characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
-                }
-            }
-            case RIGHT -> {
-                if ((characterLocation.getColumn() + 1) < mazeSize &&
-                        characterLocation.getRight() != null){
-                    rectCircle.left = rectCircle.left + CELL_SIZE;
-                    characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
-                }
-            }
-        }
 
-        previousLocation.setScoreComputed(false);
-        if (originalShortestPath.contains(characterLocation)) {
-            score += STEP_ON_SHORTEST_PATH_SCORE;
-            originalShortestPath.remove(characterLocation);
-        }
-        else{
-            if (!characterLocation.equals(startLocation) &
-                    !characterLocation.isScoreComputed() &
-                    !characterLocation.isVisited()) {
-                score -= 1;
+            previousLocation.setScoreComputed(false);
+            if (originalShortestPath.contains(characterLocation)) {
+                score += STEP_ON_SHORTEST_PATH_SCORE;
+                originalShortestPath.remove(characterLocation);
             }
-        }
-        characterLocation.setVisited(true);
-        characterLocation.setScoreComputed(true);
-        MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
+            else{
+                if (!characterLocation.equals(startLocation) &
+                        !characterLocation.isScoreComputed() &
+                        !characterLocation.isVisited()) {
+                    score -= 1;
+                }
+            }
+            characterLocation.setVisited(true);
+            characterLocation.setScoreComputed(true);
+            MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
 
-        if (characterLocation.getIndex().equals(endLocation.getIndex())) {
-            scoreList.add("Score: " + Float.toString(score) + ",    Maze Size: " + Integer.toString(mazeSize) + "\n");
-            gameState = GameState.ENDGAME;
+            if (characterLocation.getIndex().equals(endLocation.getIndex())) {
+                scoreList.add("Score: " + Float.toString(score) + ",    Maze Size: " + Integer.toString(mazeSize) + "\n");
+                gameState = GameState.ENDGAME;
+            }
         }
     }
 
@@ -294,15 +330,42 @@ public class Game {
         }
     }
 
+    private void drawMenu(String text, float top, float left, float height) {
+        String[] stringArr = text.split("\n");
+
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = top + (idx * height);
+            if (menuSelect.ordinal() == idx){
+                graphics.drawTextByHeight(font, str, left, newTop, height, Color.YELLOW);
+            }
+            else{
+                graphics.drawTextByHeight(font, str, left, newTop, height, TEXT_COLOR);
+            }
+            idx++;
+        }
+    }
+
+    private void drawMenu(){
+        String menuText =
+                """
+                    Start a New Game
+                    View High Scores
+                    Customize Controls
+                    View Credits
+                """;
+
+        StringBuilder menuBuilder = new StringBuilder();
+        menuBuilder.append(menuText);
+        drawMenu(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
+    }
+
     private void render(long window, double elapsedTime) {
         graphics.begin();
 
         switch (gameState){
-            case STARTGAME -> {
-                StringBuilder menuBuilder = new StringBuilder();
-                menuBuilder.append("Welcome to the maze game\n\n");
-                menuBuilder.append(instructionText);
-                drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
+            case MENU -> {
+                drawMenu();
             }
             case ENDGAME -> {
                 StringBuilder menuBuilder = new StringBuilder();
