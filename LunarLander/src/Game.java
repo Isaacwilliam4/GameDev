@@ -6,7 +6,6 @@ import edu.usu.graphics.Rectangle;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -52,6 +51,7 @@ public class Game {
     private Set<MazeCell> originalShortestPath;
     private GameState gameState = GameState.MENU;
     private Menu menuSelect = Menu.PLAYGAME;
+    private List<Vector2f> terrain;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -82,21 +82,10 @@ public class Game {
     }
 
     private void initTerrain() {
-//        maze = new MazeCell[mazeSize][mazeSize];
-//        for (int x = 0; x < mazeSize; x++) {
-//            for (int y = 0; y < mazeSize; y++) {
-//                maze[x][y] = new MazeCell(x,y);
-//            }
-//        }
-//        startLocation = maze[0][0];
-//        characterLocation = maze[0][0];
-//        characterLocation.setVisited(true);
-//        endLocation = maze[maze.length - 1][maze[0].length - 1];
-//        CELL_SIZE = 1/ (float) mazeSize;
-//        rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
-//        float bottom = Math.abs(MAZE_TOP) - CELL_SIZE;
-//        float right = Math.abs(MAZE_LEFT) - CELL_SIZE;
-//        rectCircleEnd = new Rectangle(right, bottom, CELL_SIZE, CELL_SIZE);
+        List<Vector2f> terrain = new ArrayList<>();
+        terrain.add(new Vector2f(-1, 0));
+        terrain.add(new Vector2f(1, 0));
+        this.terrain = GameUtils.splitTerrain(terrain,  0.1f, 0.1f);
     }
     private void registerKeys() {
         inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
@@ -224,58 +213,6 @@ public class Game {
 
     private void makeMove(Movement move){
         if (gameState != GameState.MENU) {
-            previousLocation = characterLocation;
-            switch(move){
-                case UP -> {
-                    if ((characterLocation.getRow() - 1) >= 0 &&
-                            characterLocation.getTop() != null){
-                        rectCircle.top = rectCircle.top - CELL_SIZE;
-                        characterLocation = maze[characterLocation.getRow()-1][characterLocation.getColumn()];
-                    }
-                }
-                case DOWN -> {
-                    if ((characterLocation.getRow() + 1) < mazeSize &&
-                            characterLocation.getBottom() != null){
-                        rectCircle.top = rectCircle.top + CELL_SIZE;
-                        characterLocation = maze[characterLocation.getRow()+1][characterLocation.getColumn()];
-                    }
-                }
-                case LEFT -> {
-                    if ((characterLocation.getColumn() - 1) >= 0 &&
-                            characterLocation.getLeft() != null){
-                        rectCircle.left = rectCircle.left - CELL_SIZE;
-                        characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()-1];
-                    }
-                }
-                case RIGHT -> {
-                    if ((characterLocation.getColumn() + 1) < mazeSize &&
-                            characterLocation.getRight() != null){
-                        rectCircle.left = rectCircle.left + CELL_SIZE;
-                        characterLocation = maze[characterLocation.getRow()][characterLocation.getColumn()+1];
-                    }
-                }
-            }
-
-            previousLocation.setScoreComputed(false);
-            if (originalShortestPath.contains(characterLocation)) {
-                score += STEP_ON_SHORTEST_PATH_SCORE;
-                originalShortestPath.remove(characterLocation);
-            }
-            else{
-                if (!characterLocation.equals(startLocation) &
-                        !characterLocation.isScoreComputed() &
-                        !characterLocation.isVisited()) {
-                    score -= 1;
-                }
-            }
-            characterLocation.setVisited(true);
-            characterLocation.setScoreComputed(true);
-            MazeUtils.updateShortestPath(maze, characterLocation, endLocation);
-
-            if (characterLocation.getIndex().equals(endLocation.getIndex())) {
-                scoreList.add("Score: " + Float.toString(score) + ",    Maze Size: " + Integer.toString(mazeSize) + "\n");
-                gameState = GameState.ENDGAME;
-            }
         }
     }
 
@@ -360,46 +297,25 @@ public class Game {
         drawMenu(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
     }
 
-
-
-    private List<Vector2f> splitTerrain(List<Vector2f> terrain,
-                                        float minDist,
-                                        float roughnessFactor){
-        List<Vector2f> newTerrain = new ArrayList<>(terrain);
-        Vector2f left = terrain.get(0);
-        Vector2f right = terrain.get(1);
-        if (Math.abs(left.x - right.x) < minDist){
-            return terrain;
-        }
-        Random rand = new Random();
-        float val = rand.nextFloat();
-        float y = val*roughnessFactor;
-        Vector2f midPoint = new Vector2f((left.x + right.x) / 2f, y);
-        int midpointIdx = 1;
-        newTerrain.add(midpointIdx, midPoint);
-
-        List<Vector2f> leftLine = newTerrain.subList(0, midpointIdx+1);
-        List<Vector2f> rightLine = newTerrain.subList(midpointIdx, midpointIdx+2);
-
-        List<Vector2f> leftList = splitTerrain(leftLine,minDist, roughnessFactor);
-        List<Vector2f> rightList = splitTerrain(rightLine, minDist, roughnessFactor);
-
-        leftList.addAll(rightList.subList(1, rightList.size()));
-        return leftList;
-    }
-
     private void renderTerrain(){
-        List<Vector2f> terrain = new ArrayList<>();
-        terrain.add(new Vector2f(-1, 0));
-        terrain.add(new Vector2f(1, 0));
 
-        terrain = splitTerrain(terrain,  0.1f, 0.1f);
+        for (int i = 0; i < terrain.size() - 1; i++){
+            Vector2f pt1 = terrain.get(i);
+            Vector2f pt2 = terrain.get(i+1);
 
-        Vector3f pt1 = new Vector3f(0, 0, 0);
-        Vector3f pt2 = new Vector3f(1, 0, 0);
-        Vector3f pt3 = new Vector3f(0, 1, 0);
-        Triangle t = new Triangle(pt1, pt2, pt3);
-        graphics.draw(t, Color.YELLOW);
+            Vector3f tpt1 = new Vector3f(pt1.x, pt1.y, 0);
+            Vector3f tpt2 = new Vector3f(pt2.x, pt2.y, 0);
+            Vector3f tpt3 = new Vector3f(pt1.x, 1, 0);
+            Triangle t1 = new Triangle(tpt1, tpt2, tpt3);
+
+            Vector3f t2pt1 = new Vector3f(pt1.x, 1, 0);
+            Vector3f t2pt2 = new Vector3f(pt2.x, pt2.y, 0);
+            Vector3f t2pt3 = new Vector3f(pt2.x, 1, 0);
+            Triangle t2 = new Triangle(t2pt1, t2pt2, t2pt3);
+
+            graphics.draw(t1, Color.YELLOW);
+            graphics.draw(t2, Color.YELLOW);
+        }
     }
 
     private void render(long window, double elapsedTime) {
