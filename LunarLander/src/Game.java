@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -75,28 +76,25 @@ public class Game {
     public void startGame(){
         score = 0;
         timePassed = 0;
-        initMaze();
-        MazeUtils.setupMaze(maze);
-        originalShortestPath = new HashSet<>(MazeUtils.updateShortestPath(maze, characterLocation, endLocation));
-        originalShortestPath.remove(characterLocation);
+        initTerrain();
     }
 
-    private void initMaze() {
-        maze = new MazeCell[mazeSize][mazeSize];
-        for (int x = 0; x < mazeSize; x++) {
-            for (int y = 0; y < mazeSize; y++) {
-                maze[x][y] = new MazeCell(x,y);
-            }
-        }
-        startLocation = maze[0][0];
-        characterLocation = maze[0][0];
-        characterLocation.setVisited(true);
-        endLocation = maze[maze.length - 1][maze[0].length - 1];
-        CELL_SIZE = 1/ (float) mazeSize;
-        rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
-        float bottom = Math.abs(MAZE_TOP) - CELL_SIZE;
-        float right = Math.abs(MAZE_LEFT) - CELL_SIZE;
-        rectCircleEnd = new Rectangle(right, bottom, CELL_SIZE, CELL_SIZE);
+    private void initTerrain() {
+//        maze = new MazeCell[mazeSize][mazeSize];
+//        for (int x = 0; x < mazeSize; x++) {
+//            for (int y = 0; y < mazeSize; y++) {
+//                maze[x][y] = new MazeCell(x,y);
+//            }
+//        }
+//        startLocation = maze[0][0];
+//        characterLocation = maze[0][0];
+//        characterLocation.setVisited(true);
+//        endLocation = maze[maze.length - 1][maze[0].length - 1];
+//        CELL_SIZE = 1/ (float) mazeSize;
+//        rectCircle = new Rectangle(MAZE_LEFT, MAZE_TOP, CELL_SIZE, CELL_SIZE);
+//        float bottom = Math.abs(MAZE_TOP) - CELL_SIZE;
+//        float right = Math.abs(MAZE_LEFT) - CELL_SIZE;
+//        rectCircleEnd = new Rectangle(right, bottom, CELL_SIZE, CELL_SIZE);
     }
     private void registerKeys() {
         inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
@@ -360,122 +358,59 @@ public class Game {
         drawMenu(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
     }
 
+
+
+    private List<Vector2f> splitTerrain(List<Vector2f> terrain,
+                                        int leftIdx,
+                                        Vector2f left,
+                                        int rightIdx,
+                                        Vector2f right,
+                                        float minDist,
+                                        float roughnessFactor){
+
+        if ((left.distance(right)) < minDist){
+            return terrain;
+        }
+        Random rand = new Random();
+        float val = rand.nextFloat();
+        float y = val*roughnessFactor;
+        Vector2f midPoint = new Vector2f((left.x + right.x) / 2f, y);
+        terrain.add(leftIdx+1, midPoint);
+
+        List<Vector2f> leftList = splitTerrain(terrain, leftIdx, left, leftIdx+1, midPoint, minDist, roughnessFactor);
+        List<Vector2f> rightList = splitTerrain(terrain, leftIdx+1, midPoint, rightIdx+1, right, minDist, roughnessFactor);
+
+        leftList.addAll(rightList);
+        return leftList;
+    }
+
+    private void renderTerrain(){
+        List<Vector2f> terrain = new ArrayList<>();
+
+        terrain.add(new Vector2f(-1, 0));
+        terrain.add(new Vector2f(1, 0));
+
+
+
+        Vector3f pt1 = new Vector3f(0, 0, 0);
+        Vector3f pt2 = new Vector3f(1, 0, 0);
+        Vector3f pt3 = new Vector3f(0, 1, 0);
+        Triangle t = new Triangle(pt1, pt2, pt3);
+        graphics.draw(t, Color.YELLOW);
+    }
+
     private void render(long window, double elapsedTime) {
         graphics.begin();
 
-        switch (gameState){
+        switch (gameState) {
             case MENU -> {
                 drawMenu();
             }
-            case ENDGAME -> {
-                StringBuilder menuBuilder = new StringBuilder();
-                menuBuilder.append("Finished Maze\nScore:")
-                        .append(score)
-                        .append("\nTime:")
-                        .append(decimalFormat.format(timePassed))
-                        .append("\n\n");
-                menuBuilder.append(instructionText);
-                drawTextWithNewLines(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
-            }
             case PLAYGAME -> {
-                graphics.draw(bg, displayRect, Color.WHITE);
-
-                for (var row: maze){
-                    for (var cell:row){
-                        renderCell(cell);
-                    }
-                }
-
-                StringBuilder scoreListBuilder = new StringBuilder();
-                scoreListBuilder.append("High Scores: \n");
-
-                for (String score: scoreList){
-                    scoreListBuilder.append(score);
-                }
-
-                String timeAndScoreText = "Time " + decimalFormat.format(timePassed)  + "\n" +
-                        "Score " + score;
-
-                drawTextWithNewLines(instructionText, -0.5f, -0.97f, TEXT_HEIGHT);
-                drawTextWithNewLines(timeAndScoreText, -0.5f, 0.55f, TEXT_HEIGHT);
-                drawTextWithNewLines(scoreListBuilder.toString(), -0.1f, -0.97f, TEXT_HEIGHT);
-
-                graphics.draw(character, rectCircle, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
-                graphics.draw(endSignal, rectCircleEnd, 0, new Vector2f(rectCircle.left + rectCircle.width / 2, rectCircle.top + rectCircle.height / 2), Color.WHITE);
-            }
-            case CREDITS -> {
-                graphics.drawTextByHeight(font, "Made by Isaac Peterson", MENU_LEFT, MENU_TOP, TEXT_HEIGHT, TEXT_COLOR);
-            }
-            case HIGHSCORES -> {
-                StringBuilder scoreListBuilder = new StringBuilder();
-                scoreListBuilder.append("High Scores: \n");
-
-                for (String score: scoreList){
-                    scoreListBuilder.append(score);
-                }
-                drawTextWithNewLines(scoreListBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
+                renderTerrain();
             }
         }
         graphics.end();
     }
 
-    private void renderCell(MazeCell cell){
-        //Update cell's maze walls
-        if (cell.getTop() == null){
-            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
-            float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
-
-            graphics.draw(r, MAZE_COLOR);
-
-        }
-        if (cell.getBottom() == null){
-            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
-            float top = MAZE_TOP + (cell.getRow() + 1) * CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_SIZE, CELL_WALL_THICKNESS);
-
-            graphics.draw(r, MAZE_COLOR);
-
-        }
-        if (cell.getLeft() == null){
-            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE;
-            float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_SIZE);
-
-            graphics.draw(r, MAZE_COLOR);
-        }
-        if (cell.getRight() == null){
-            float left = MAZE_LEFT + (cell.getColumn() + 1) * CELL_SIZE;
-            float top = MAZE_TOP + cell.getRow() * CELL_SIZE;
-            Rectangle r = new Rectangle(left, top, CELL_WALL_THICKNESS, CELL_SIZE);
-
-            graphics.draw(r, MAZE_COLOR);
-        }
-
-        //Only update the cell if its not the character's cell or the end cell
-        if (!cell.getIndex().equals(characterLocation.getIndex()) &
-            !cell.getIndex().equals(endLocation.getIndex())){
-            boolean showShortestPath = cell.isOnShortestPath() & showPath;
-            boolean showNeighborHint = cell.isOnShortestPath() &
-                    MazeUtils.areNeighbors(cell, characterLocation) &
-                    !showShortestPath &
-                    showHint;
-            boolean drawBreadCrumb = cell.isVisited() & showBreadCrumbs & !showNeighborHint & !showShortestPath;
-
-            float left = MAZE_LEFT + cell.getColumn() * CELL_SIZE + (1.0f/4.0f)*CELL_SIZE;
-            float top = MAZE_TOP + cell.getRow() * CELL_SIZE + (1.0f/4.0f)*CELL_SIZE;
-            float size = (1.0f/2.0f)*CELL_SIZE;
-
-            if (drawBreadCrumb){
-                Rectangle r = new Rectangle(left, top, size, size);
-                graphics.draw(breadCrumb, r, Color.WHITE);
-            }
-            else if (showNeighborHint | showShortestPath){
-                Rectangle r = new Rectangle(left, top, size, size);
-                graphics.draw(hint, r, Color.WHITE);
-            }
-        }
-
-
-    }
 }
