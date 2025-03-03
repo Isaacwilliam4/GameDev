@@ -6,6 +6,8 @@ import edu.usu.graphics.Rectangle;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -361,36 +363,37 @@ public class Game {
 
 
     private List<Vector2f> splitTerrain(List<Vector2f> terrain,
-                                        int leftIdx,
-                                        Vector2f left,
-                                        int rightIdx,
-                                        Vector2f right,
                                         float minDist,
                                         float roughnessFactor){
-
-        if ((left.distance(right)) < minDist){
+        List<Vector2f> newTerrain = new ArrayList<>(terrain);
+        Vector2f left = terrain.get(0);
+        Vector2f right = terrain.get(1);
+        if (Math.abs(left.x - right.x) < minDist){
             return terrain;
         }
         Random rand = new Random();
         float val = rand.nextFloat();
         float y = val*roughnessFactor;
         Vector2f midPoint = new Vector2f((left.x + right.x) / 2f, y);
-        terrain.add(leftIdx+1, midPoint);
+        int midpointIdx = 1;
+        newTerrain.add(midpointIdx, midPoint);
 
-        List<Vector2f> leftList = splitTerrain(terrain, leftIdx, left, leftIdx+1, midPoint, minDist, roughnessFactor);
-        List<Vector2f> rightList = splitTerrain(terrain, leftIdx+1, midPoint, rightIdx+1, right, minDist, roughnessFactor);
+        List<Vector2f> leftLine = newTerrain.subList(0, midpointIdx+1);
+        List<Vector2f> rightLine = newTerrain.subList(midpointIdx, midpointIdx+2);
 
-        leftList.addAll(rightList);
+        List<Vector2f> leftList = splitTerrain(leftLine,minDist, roughnessFactor);
+        List<Vector2f> rightList = splitTerrain(rightLine, minDist, roughnessFactor);
+
+        leftList.addAll(rightList.subList(1, rightList.size()));
         return leftList;
     }
 
     private void renderTerrain(){
         List<Vector2f> terrain = new ArrayList<>();
-
         terrain.add(new Vector2f(-1, 0));
         terrain.add(new Vector2f(1, 0));
 
-
+        terrain = splitTerrain(terrain,  0.1f, 0.1f);
 
         Vector3f pt1 = new Vector3f(0, 0, 0);
         Vector3f pt2 = new Vector3f(1, 0, 0);
