@@ -1,15 +1,19 @@
+import Enums.GameState;
+import Enums.Menu;
+import Enums.Movement;
+import Util.GameUtils;
+import Util.KeyboardInput;
 import edu.usu.graphics.*;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Font;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
-import java.text.DecimalFormat;
+
 import java.util.*;
 import java.util.List;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.w3c.dom.css.Rect;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -25,7 +29,6 @@ public class Game {
     private double timePassed = 0;
     private float score = 0;
     private List<String> scoreList = new ArrayList<>();
-    private Set<MazeCell> originalShortestPath;
     private GameState gameState = GameState.MENU;
     private Menu menuSelect = Menu.PLAYGAME;
     private List<Vector2f> terrain;
@@ -33,8 +36,8 @@ public class Game {
     private float characterRotation = 0f;
     private Vector2f characterLocation = new Vector2f(0f, 0.3f);
     private Ship ship;
-    private float CHARACTER_WIDTH = 0.05f;
-    private float ROTATION_SPEED = 0.075f;
+    private float CHARACTER_WIDTH = 0.03f;
+    private float ROTATION_SPEED = 0.025f;
     private Vector2f GRAVITY = new Vector2f(0f, 1.0f);
     private float THRUST = -1.2f;
     private  Texture bg;
@@ -156,9 +159,8 @@ public class Game {
                     ship.setRotation(ship.getRotation()-ROTATION_SPEED);
                 }
                 case UP -> {
-                    Vector2f acceleration = new Vector2f((float)Math.cos(ship.getRotation()), (float)Math.sin(ship.getRotation()));
-                    acceleration.mul(THRUST);
-                    ship.setAcceleration(acceleration);
+                    Vector2f thrust = ship.getForward().mul(THRUST);
+                    ship.setAcceleration(thrust);
                 }
             }
         }

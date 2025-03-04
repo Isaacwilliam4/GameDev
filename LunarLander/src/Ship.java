@@ -4,6 +4,7 @@ public class Ship {
     private Vector2f position;
     private Vector2f velocity;
     private Vector2f acceleration;
+    private Vector2f forward;
     private float rotation;
 
     public Ship(Vector2f position, Vector2f velocity, Vector2f acceleration, float rotation) {
@@ -24,6 +25,16 @@ public class Ship {
         positiondt.add(velocity);
         positiondt.mul(timeElapsedf);
         position.add(positiondt);
+        Vector2f forward = new Vector2f((float)Math.cos(rotation), (float)Math.sin(rotation));
+        setForward(forward);
+    }
+
+    public Vector2f getForward() {
+        return forward;
+    }
+
+    public void setForward(Vector2f forward) {
+        this.forward = forward;
     }
 
     public Vector2f getPosition() {
