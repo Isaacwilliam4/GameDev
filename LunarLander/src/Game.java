@@ -74,14 +74,14 @@ public class Game {
                 ship.getForward(),
                 0.01f, 0.005f,
                 0.12f, 0.05f,
-                2, 0.5f, 0.1f);
+                2, 0.5f, 0.01f);
 
         particleSystemSmoke = new ParticleSystem(
                 ship.getBottom(),
                 ship.getForward(),
                 0.015f, 0.004f,
                 0.07f, 0.05f,
-                3, 1, 0.1f);
+                3, 1, 0.01f);
 
         particleSystemFireExplosion = new ParticleSystem(
                 ship.getPosition(),
@@ -267,11 +267,11 @@ public class Game {
         if (gameState == GameState.PLAYGAME){
             shipLanded = GameUtils.hasLanded(terrain,
                     ship.getPosition(),
-                    ship.CHARACTER_WIDTH, ship, safeZoneIdxs);
+                    ship.CHARACTER_WIDTH / 2, ship, safeZoneIdxs);
             if (!shipLanded){
                 shipCrashed = GameUtils.hasCrashed(terrain,
                         ship.getPosition(),
-                        ship.CHARACTER_WIDTH);
+                        ship.CHARACTER_WIDTH / 2);
 
                 if (!shipCrashed){
                     timePassed += elapsedTime;

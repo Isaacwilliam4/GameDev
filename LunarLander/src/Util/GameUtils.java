@@ -89,7 +89,9 @@ public class GameUtils {
                 Vector2f pt2 = terrain.get(i+1);
 
                 if (lineCircleIntersection(pt1, pt2, position, characterWidth)){
-                    return ship.getRotation() < .3f & ship.getVelocity().length() < .3f;
+                    double rotationD = Math.toDegrees(ship.getRotation());
+                    float velocityLen = ship.getVelocity().length();
+                    return Math.abs(rotationD - 90) < 5 & velocityLen < .02f;
                 }
             }
         }
