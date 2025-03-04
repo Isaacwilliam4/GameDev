@@ -1,5 +1,8 @@
 package Util;
 
+import edu.usu.graphics.Color;
+import edu.usu.graphics.Graphics2D;
+import edu.usu.graphics.Rectangle;
 import org.joml.Vector2f;
 
 import java.util.*;
@@ -36,6 +39,9 @@ public class GameUtils {
     }
 
     private static boolean lineCircleIntersection(Vector2f pt1, Vector2f pt2, Vector2f circleCenter, float circleRadius) {
+        pt1 = new Vector2f(pt1.x, pt1.y);
+        pt2 = new Vector2f(pt2.x, pt2.y);
+        circleCenter = new Vector2f(circleCenter.x, circleCenter.y);
         // Translate points to circle's coordinate system
         Vector2f d = pt2.sub(pt1); // Direction vector of the line
         Vector2f f = pt1.sub(circleCenter); // Vector from circle center to the start of the line
@@ -66,10 +72,11 @@ public class GameUtils {
         return false;
     }
 
-    public static boolean hasCrashed(List<Vector2f> terrain, Vector2f position, float characterWidth) {
+    public static boolean hasCrashed(List<Vector2f> terrain, Vector2f position, float characterWidth, Graphics2D graphics) {
         for (int i = 0; i < terrain.size()-1; i++) {
             Vector2f pt1 = terrain.get(i);
             Vector2f pt2 = terrain.get(i+1);
+
             if (lineCircleIntersection(pt1, pt2, position, characterWidth)){
                 return true;
             }

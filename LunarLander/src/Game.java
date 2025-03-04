@@ -242,14 +242,9 @@ public class Game {
 
     private void update(double elapsedTime) {
         if (gameState == GameState.PLAYGAME){
-            List<Vector2f> terrainClone = new ArrayList<>();
-            for (Vector2f v: terrain){
-                terrainClone.add(new Vector2f(v.x,v.y));
-            }
-
-            shipCrashed = GameUtils.hasCrashed(terrainClone,
-                    new Vector2f(ship.getPosition().x, ship.getPosition().y),
-                    ship.CHARACTER_WIDTH);
+            shipCrashed = GameUtils.hasCrashed(terrain,
+                    ship.getPosition(),
+                    ship.CHARACTER_WIDTH, graphics);
 
             if (!shipCrashed){
                 timePassed += elapsedTime;
