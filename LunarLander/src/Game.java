@@ -42,7 +42,10 @@ public class Game {
     private float THRUST = -1.2f;
     private  Texture bg;
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
-
+    private ParticleSystem particleSystemFire;
+    private ParticleSystem particleSystemSmoke;
+    private ParticleSystemRenderer particleSystemRendererFire;
+    private ParticleSystemRenderer particleSystemRendererSmoke;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -50,10 +53,6 @@ public class Game {
     }
 
     public void initialize() {
-//        endSignal = new Texture("resources/images/galaxy.png");
-//        character = new Texture("resources/images/alien.png");
-//        breadCrumb = new Texture("resources/images/star.png");
-//        hint = new Texture("resources/images/rocket.png");
         ship = new Ship(new Vector2f(0f, 0.1f),
                         new Vector2f(0f, 0f),
                         GRAVITY,
@@ -61,6 +60,24 @@ public class Game {
                 );
         bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
+
+        particleSystemFire = new ParticleSystem(
+                ship.getPosition(),
+                0.01f, 0.005f,
+                0.12f, 0.05f,
+                2, 0.5f, 0.1f);
+
+        particleSystemSmoke = new ParticleSystem(
+                ship.getPosition(),
+                0.015f, 0.004f,
+                0.07f, 0.05f,
+                3, 1, 0.1f);
+
+        particleSystemRendererFire = new ParticleSystemRenderer();
+        particleSystemRendererFire.initialize("resources/images/fire.png");
+
+        particleSystemRendererSmoke = new ParticleSystemRenderer();
+        particleSystemRendererSmoke.initialize("resources/images/smoke.png");
         registerKeys();
     }
 
@@ -200,6 +217,9 @@ public class Game {
             timePassed += elapsedTime;
             ship.update(elapsedTime);
             ship.setAcceleration(GRAVITY);
+            particleSystemFire.setCenter(ship.getPosition());
+            particleSystemSmoke.setCenter(ship.getPosition());
+
         }
     }
 
