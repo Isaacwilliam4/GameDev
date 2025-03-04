@@ -35,8 +35,8 @@ public class Game {
     private Ship ship;
     private float CHARACTER_WIDTH = 0.05f;
     private float ROTATION_SPEED = 0.075f;
-    private Vector2f GRAVITY = new Vector2f(0f, 0.1f);
-    private float MAX_ACCELERATION = 0.2f;
+    private Vector2f GRAVITY = new Vector2f(0f, 1.0f);
+    private float THRUST = -1.2f;
     private  Texture bg;
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
 
@@ -156,8 +156,8 @@ public class Game {
                     ship.setRotation(ship.getRotation()-ROTATION_SPEED);
                 }
                 case UP -> {
-                    Vector2f acceleration = new Vector2f(-(float)Math.cos(ship.getRotation()), -(float)Math.sin(ship.getRotation()));
-                    acceleration.mul(MAX_ACCELERATION);
+                    Vector2f acceleration = new Vector2f((float)Math.cos(ship.getRotation()), (float)Math.sin(ship.getRotation()));
+                    acceleration.mul(THRUST);
                     ship.setAcceleration(acceleration);
                 }
             }
