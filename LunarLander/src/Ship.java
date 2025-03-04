@@ -1,11 +1,13 @@
 import org.joml.Vector2f;
 
 public class Ship {
+    public final float CHARACTER_HEIGHT = 0.02f;
+    public final float CHARACTER_WIDTH = 0.03f;
     private Vector2f position;
     private Vector2f velocity;
     private Vector2f acceleration;
-    private Vector2f forward;
     private float rotation;
+    private boolean thrustActive = false;
 
     public Ship(Vector2f position, Vector2f velocity, Vector2f acceleration, float rotation) {
         this.position = position;
@@ -25,16 +27,34 @@ public class Ship {
         positiondt.add(velocity);
         positiondt.mul(timeElapsedf);
         position.add(positiondt);
-        Vector2f forward = new Vector2f((float)Math.cos(rotation), (float)Math.sin(rotation));
-        setForward(forward);
+    }
+
+    public Vector2f getBottom() {
+        Vector2f _position = new Vector2f(position.x, position.y);
+        Vector2f _bottom = new Vector2f(CHARACTER_WIDTH / 2, 0);
+
+        // Apply 2D rotation to _bottom
+        float cosTheta = (float) Math.cos(rotation);
+        float sinTheta = (float) Math.sin(rotation);
+
+        float rotatedX = _bottom.x * cosTheta - _bottom.y * sinTheta;
+        float rotatedY = _bottom.x * sinTheta + _bottom.y * cosTheta;
+
+        // Translate the rotated vector to be relative to _position
+        return new Vector2f(_position.x + rotatedX, _position.y + rotatedY);
+    }
+
+
+    public boolean isThrustActive() {
+        return thrustActive;
+    }
+
+    public void setThrustActive(boolean thrustActive) {
+        this.thrustActive = thrustActive;
     }
 
     public Vector2f getForward() {
-        return forward;
-    }
-
-    public void setForward(Vector2f forward) {
-        this.forward = forward;
+        return new Vector2f((float)Math.cos(rotation), (float)Math.sin(rotation));
     }
 
     public Vector2f getPosition() {

@@ -36,7 +36,6 @@ public class Game {
     private float characterRotation = 0f;
     private Vector2f characterLocation = new Vector2f(0f, 0.3f);
     private Ship ship;
-    private float CHARACTER_WIDTH = 0.03f;
     private float ROTATION_SPEED = 0.025f;
     private Vector2f GRAVITY = new Vector2f(0f, 1.0f);
     private float THRUST = -1.2f;
@@ -63,15 +62,17 @@ public class Game {
 
         particleSystemFire = new ParticleSystem(
                 ship.getPosition(),
+                ship.getForward(),
                 0.01f, 0.005f,
                 0.12f, 0.05f,
-                2, 0.5f, 0.1f);
+                2, 0.5f, 0.2f);
 
         particleSystemSmoke = new ParticleSystem(
                 ship.getPosition(),
+                ship.getForward(),
                 0.015f, 0.004f,
                 0.07f, 0.05f,
-                3, 1, 0.1f);
+                3, 1, 0.2f);
 
         particleSystemRendererFire = new ParticleSystemRenderer();
         particleSystemRendererFire.initialize("resources/images/fire.png");
@@ -171,13 +172,20 @@ public class Game {
             switch (move){
                 case RIGHT ->{
                     ship.setRotation(ship.getRotation()+ROTATION_SPEED);
+                    particleSystemSmoke.setDirection(ship.getForward());
+                    particleSystemFire.setDirection(ship.getForward());
                 }
                 case LEFT ->{
                     ship.setRotation(ship.getRotation()-ROTATION_SPEED);
+                    particleSystemSmoke.setDirection(ship.getForward());
+                    particleSystemFire.setDirection(ship.getForward());
                 }
                 case UP -> {
                     Vector2f thrust = ship.getForward().mul(THRUST);
                     ship.setAcceleration(thrust);
+                    particleSystemSmoke.setCenter(ship.getBottom());
+                    particleSystemFire.setCenter(ship.getBottom());
+                    ship.setThrustActive(true);
                 }
             }
         }
@@ -216,10 +224,10 @@ public class Game {
         if (gameState == GameState.PLAYGAME){
             timePassed += elapsedTime;
             ship.update(elapsedTime);
+            particleSystemFire.update(elapsedTime, ship.isThrustActive());
+            particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
             ship.setAcceleration(GRAVITY);
-            particleSystemFire.setCenter(ship.getPosition());
-            particleSystemSmoke.setCenter(ship.getPosition());
-
+            ship.setThrustActive(false);
         }
     }
 
@@ -275,10 +283,10 @@ public class Game {
     }
 
     private void renderShip(){
-        Rectangle r = new Rectangle(ship.getPosition().x - (CHARACTER_WIDTH),
-                ship.getPosition().y - (CHARACTER_WIDTH / 2),
-                CHARACTER_WIDTH*2,
-                CHARACTER_WIDTH);
+        Rectangle r = new Rectangle(ship.getPosition().x - (ship.CHARACTER_WIDTH / 2),
+                ship.getPosition().y - (ship.CHARACTER_HEIGHT / 2),
+                ship.CHARACTER_WIDTH,
+                ship.CHARACTER_HEIGHT);
         graphics.draw(r, ship.getRotation(), ship.getPosition(), Color.RED);
     }
 
@@ -293,6 +301,8 @@ public class Game {
                 graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
                 renderShip();
+                particleSystemRendererSmoke.render(graphics, particleSystemSmoke);
+                particleSystemRendererFire.render(graphics, particleSystemFire);
             }
         }
         graphics.end();
