@@ -16,7 +16,7 @@ public class Ship {
     public void update(double timeElapsed) {
         float timeElapsedf = (float) timeElapsed;
         Vector2f accelerationdt = new Vector2f(acceleration).mul(timeElapsedf);
-        Vector2f velocitydt = new Vector2f(velocity);
+        Vector2f velocitydt = new Vector2f(0,0);
         velocitydt.add(accelerationdt);
         velocitydt.mul(timeElapsedf);
         velocity.add(velocitydt);

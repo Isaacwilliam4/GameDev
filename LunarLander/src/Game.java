@@ -35,8 +35,8 @@ public class Game {
     private Ship ship;
     private float CHARACTER_WIDTH = 0.05f;
     private float ROTATION_SPEED = 0.075f;
-    private float GRAVITY = 0.1f;
-    private float MAX_ACCELERATION = 0.05f;
+    private Vector2f GRAVITY = new Vector2f(0f, 0.1f);
+    private float MAX_ACCELERATION = 0.2f;
     private  Texture bg;
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
 
@@ -53,8 +53,8 @@ public class Game {
 //        hint = new Texture("resources/images/rocket.png");
         ship = new Ship(new Vector2f(0f, 0.1f),
                         new Vector2f(0f, 0f),
-                        new Vector2f(0, GRAVITY),
-                        0f
+                        GRAVITY,
+                (float) Math.PI / 2f
                 );
         bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
@@ -156,10 +156,9 @@ public class Game {
                     ship.setRotation(ship.getRotation()-ROTATION_SPEED);
                 }
                 case UP -> {
-//                    Vector2f acceleration = new Vector2f((float)Math.cos(ship.getRotation()), (float)Math.sin(ship.getRotation()));
-//                    Vector2f acceleration = new Vector2f(0, GRAVITY);
-//                    acceleration.mul(MAX_ACCELERATION);
-//                    ship.setAcceleration(acceleration);
+                    Vector2f acceleration = new Vector2f(-(float)Math.cos(ship.getRotation()), -(float)Math.sin(ship.getRotation()));
+                    acceleration.mul(MAX_ACCELERATION);
+                    ship.setAcceleration(acceleration);
                 }
             }
         }
@@ -198,6 +197,7 @@ public class Game {
         if (gameState == GameState.PLAYGAME){
             timePassed += elapsedTime;
             ship.update(elapsedTime);
+            ship.setAcceleration(GRAVITY);
         }
     }
 
@@ -253,10 +253,10 @@ public class Game {
     }
 
     private void renderShip(){
-        Rectangle r = new Rectangle(ship.getPosition().x - (CHARACTER_WIDTH / 2),
-                ship.getPosition().y - (CHARACTER_WIDTH),
-                CHARACTER_WIDTH,
-                CHARACTER_WIDTH*2);
+        Rectangle r = new Rectangle(ship.getPosition().x - (CHARACTER_WIDTH),
+                ship.getPosition().y - (CHARACTER_WIDTH / 2),
+                CHARACTER_WIDTH*2,
+                CHARACTER_WIDTH);
         graphics.draw(r, ship.getRotation(), ship.getPosition(), Color.RED);
     }
 
