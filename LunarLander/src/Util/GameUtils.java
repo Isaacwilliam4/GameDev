@@ -97,4 +97,19 @@ public class GameUtils {
         }
         return false;
     }
+
+    public static HashSet<Integer> addSafeZone(List<Vector2f> terrain, int safeZoneIdx, float safeZoneWidth){
+        HashSet<Integer> safeZoneIdxSet = new HashSet<>();
+        float dist = 0;
+        while (dist < safeZoneWidth) {
+            Vector2f pt1 = terrain.get(safeZoneIdx);
+            Vector2f pt2 = terrain.get(safeZoneIdx+1);
+            float currentDist = Math.abs(pt1.x - pt2.x);
+            dist += currentDist;
+            pt1.y = 0;
+            safeZoneIdxSet.add(safeZoneIdx);
+            safeZoneIdx += 1;
+        }
+        return safeZoneIdxSet;
+    }
 }

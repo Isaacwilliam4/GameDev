@@ -1,4 +1,5 @@
 import Enums.GameState;
+import Enums.Level;
 import Enums.Menu;
 import Enums.Movement;
 import Models.ParticleSystem;
@@ -53,6 +54,7 @@ public class Game {
     private boolean shipCrashed = false;
     private boolean shipLanded = false;
     private float safeZoneWidth = 0.1f;
+    private Level level = Level.LEVEL_1;
     private HashSet<Integer> safeZoneIdxs = new HashSet<>();
 
     public Game(Graphics2D graphics) {
@@ -74,14 +76,14 @@ public class Game {
                 ship.getForward(),
                 0.01f, 0.005f,
                 0.12f, 0.05f,
-                2, 0.5f, 0.01f);
+                2, 0.5f, 0.1f);
 
         particleSystemSmoke = new ParticleSystem(
                 ship.getBottom(),
                 ship.getForward(),
-                0.015f, 0.004f,
-                0.07f, 0.05f,
-                3, 1, 0.01f);
+                0.01f, 0.005f,
+                0.12f, 0.05f,
+                2, 0.5f, 0.1f);
 
         particleSystemFireExplosion = new ParticleSystem(
                 ship.getPosition(),
@@ -118,22 +120,25 @@ public class Game {
         List<Vector2f> terrain = new ArrayList<>();
         terrain.add(new Vector2f(-1, 0));
         terrain.add(new Vector2f(1, 0));
-        this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
+        switch (level) {
+            case LEVEL_1 -> {
+                this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
+                Random rand = new Random();
+                int midIdx = this.terrain.size() / 2;
+                int safeZoneIdx1 = rand.nextInt(5, midIdx - 5);
+                int safeZoneIdx2 = rand.nextInt(midIdx + 5, this.terrain.size() - 5);
+                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, this.safeZoneWidth));
+                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, this.safeZoneWidth));
+            }
+            case LEVEL_2 -> {
+                this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
+                Random rand = new Random();
+                int safeZoneIdx1 = rand.nextInt(50, this.terrain.size() - 10);
+                this.safeZoneWidth = 0.05f;
+                this.safeZoneIdxs = new HashSet<>();
+                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, this.safeZoneWidth));
+            }
 
-        Random rand = new Random();
-        int midIdx = (int)(this.terrain.size() / 2);
-        int safeZoneIdx1 = rand.nextInt(5, midIdx - 5);
-        int safeZoneIdx2 = rand.nextInt(midIdx + 5, this.terrain.size() - 5);
-
-        float dist = 0;
-        while (dist < safeZoneWidth) {
-            Vector2f pt1 = this.terrain.get(safeZoneIdx1);
-            Vector2f pt2 = this.terrain.get(safeZoneIdx1+1);
-            float currentDist = Math.abs(pt1.x - pt2.x);
-            dist += currentDist;
-            pt1.y = 0;
-            safeZoneIdxs.add(safeZoneIdx1);
-            safeZoneIdx1 += 1;
         }
 
     }
@@ -268,7 +273,19 @@ public class Game {
             shipLanded = GameUtils.hasLanded(terrain,
                     ship.getPosition(),
                     ship.CHARACTER_WIDTH / 2, ship, safeZoneIdxs);
-            if (!shipLanded){
+            if (shipLanded){
+                switch (level) {
+                    case LEVEL_1 -> {
+                        level = level.next();
+                        initialize();
+                        startGame();
+                    }
+                    case LEVEL_2 -> {
+                        gameState = GameState.HIGHSCORES;
+                    }
+                }
+            }
+            else{
                 shipCrashed = GameUtils.hasCrashed(terrain,
                         ship.getPosition(),
                         ship.CHARACTER_WIDTH / 2);
