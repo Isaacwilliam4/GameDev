@@ -1,3 +1,5 @@
+package Models;
+
 import org.joml.Vector2f;
 import edu.usu.graphics.Rectangle;
 

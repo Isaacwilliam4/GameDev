@@ -1,8 +1,11 @@
 import Enums.GameState;
 import Enums.Menu;
 import Enums.Movement;
+import Models.ParticleSystem;
+import Models.Ship;
 import Util.GameUtils;
 import Util.KeyboardInput;
+import Util.ParticleSystemRenderer;
 import edu.usu.graphics.*;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Font;
@@ -48,6 +51,9 @@ public class Game {
     private ParticleSystemRenderer particleSystemRendererFire;
     private ParticleSystemRenderer particleSystemRendererSmoke;
     private boolean shipCrashed = false;
+    private boolean shipLanded = false;
+    private float safeZoneWidth = 0.1f;
+    private HashSet<Integer> safeZoneIdxs = new HashSet<>();
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -64,14 +70,14 @@ public class Game {
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
 
         particleSystemFire = new ParticleSystem(
-                ship.getPosition(),
+                ship.getBottom(),
                 ship.getForward(),
                 0.01f, 0.005f,
                 0.12f, 0.05f,
                 2, 0.5f, 0.1f);
 
         particleSystemSmoke = new ParticleSystem(
-                ship.getPosition(),
+                ship.getBottom(),
                 ship.getForward(),
                 0.015f, 0.004f,
                 0.07f, 0.05f,
@@ -112,7 +118,24 @@ public class Game {
         List<Vector2f> terrain = new ArrayList<>();
         terrain.add(new Vector2f(-1, 0));
         terrain.add(new Vector2f(1, 0));
-        this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.25f);
+        this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
+
+        Random rand = new Random();
+        int midIdx = (int)(this.terrain.size() / 2);
+        int safeZoneIdx1 = rand.nextInt(5, midIdx - 5);
+        int safeZoneIdx2 = rand.nextInt(midIdx + 5, this.terrain.size() - 5);
+
+        float dist = 0;
+        while (dist < safeZoneWidth) {
+            Vector2f pt1 = this.terrain.get(safeZoneIdx1);
+            Vector2f pt2 = this.terrain.get(safeZoneIdx1+1);
+            float currentDist = Math.abs(pt1.x - pt2.x);
+            dist += currentDist;
+            pt1.y = 0;
+            safeZoneIdxs.add(safeZoneIdx1);
+            safeZoneIdx1 += 1;
+        }
+
     }
     private void registerKeys() {
         inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
@@ -188,7 +211,7 @@ public class Game {
     }
 
     private void makeMove(Movement move){
-        if (gameState != GameState.MENU) {
+        if (gameState != GameState.MENU & !shipLanded) {
             switch (move){
                 case RIGHT ->{
                     ship.setRotation(ship.getRotation()+ROTATION_SPEED);
@@ -242,25 +265,29 @@ public class Game {
 
     private void update(double elapsedTime) {
         if (gameState == GameState.PLAYGAME){
-            shipCrashed = GameUtils.hasCrashed(terrain,
+            shipLanded = GameUtils.hasLanded(terrain,
                     ship.getPosition(),
-                    ship.CHARACTER_WIDTH, graphics);
+                    ship.CHARACTER_WIDTH, ship, safeZoneIdxs);
+            if (!shipLanded){
+                shipCrashed = GameUtils.hasCrashed(terrain,
+                        ship.getPosition(),
+                        ship.CHARACTER_WIDTH);
 
-            if (!shipCrashed){
-                timePassed += elapsedTime;
-                ship.update(elapsedTime);
-                particleSystemFire.update(elapsedTime, ship.isThrustActive());
-                particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
-                ship.setAcceleration(GRAVITY);
-                ship.setThrustActive(false);
+                if (!shipCrashed){
+                    timePassed += elapsedTime;
+                    ship.update(elapsedTime);
+                    particleSystemFire.update(elapsedTime, ship.isThrustActive());
+                    particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
+                    ship.setAcceleration(GRAVITY);
+                    ship.setThrustActive(false);
+                }
+                else{
+                    particleSystemFireExplosion.setCenter(ship.getPosition());
+                    particleSystemSmokeExplosion.setCenter(ship.getPosition());
+                    particleSystemSmokeExplosion.updateWithTimeLimit(elapsedTime);
+                    particleSystemFireExplosion.updateWithTimeLimit(elapsedTime);
+                }
             }
-            else{
-                particleSystemFireExplosion.setCenter(ship.getPosition());
-                particleSystemSmokeExplosion.setCenter(ship.getPosition());
-                particleSystemSmokeExplosion.updateWithTimeLimit(elapsedTime);
-                particleSystemFireExplosion.updateWithTimeLimit(elapsedTime);
-            }
-
         }
     }
 
@@ -333,15 +360,21 @@ public class Game {
             case PLAYGAME -> {
                 graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
-                if (!shipCrashed){
+                if (shipLanded){
                     renderShip();
-                    particleSystemRendererSmoke.render(graphics, particleSystemSmoke);
-                    particleSystemRendererFire.render(graphics, particleSystemFire);
                 }
                 else{
-                    particleSystemRendererSmoke.render(graphics, particleSystemSmokeExplosion);
-                    particleSystemRendererFire.render(graphics, particleSystemFireExplosion);
+                    if (!shipCrashed){
+                        renderShip();
+                        particleSystemRendererSmoke.render(graphics, particleSystemSmoke);
+                        particleSystemRendererFire.render(graphics, particleSystemFire);
+                    }
+                    else{
+                        particleSystemRendererSmoke.render(graphics, particleSystemSmokeExplosion);
+                        particleSystemRendererFire.render(graphics, particleSystemFireExplosion);
+                    }
                 }
+
 
             }
         }

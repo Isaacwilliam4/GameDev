@@ -1,10 +1,7 @@
 package Util;
 
-import edu.usu.graphics.Color;
-import edu.usu.graphics.Graphics2D;
-import edu.usu.graphics.Rectangle;
 import org.joml.Vector2f;
-
+import Models.Ship;
 import java.util.*;
 
 public class GameUtils {
@@ -72,13 +69,28 @@ public class GameUtils {
         return false;
     }
 
-    public static boolean hasCrashed(List<Vector2f> terrain, Vector2f position, float characterWidth, Graphics2D graphics) {
+    public static boolean hasCrashed(List<Vector2f> terrain, Vector2f position, float characterWidth) {
         for (int i = 0; i < terrain.size()-1; i++) {
             Vector2f pt1 = terrain.get(i);
             Vector2f pt2 = terrain.get(i+1);
 
             if (lineCircleIntersection(pt1, pt2, position, characterWidth)){
                 return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasLanded(List<Vector2f> terrain, Vector2f position, float characterWidth, Ship ship, HashSet<Integer> safeZoneIdxs){
+
+        for (int i = 0; i < terrain.size()-1; i++) {
+            if (safeZoneIdxs.contains(i)){
+                Vector2f pt1 = terrain.get(i);
+                Vector2f pt2 = terrain.get(i+1);
+
+                if (lineCircleIntersection(pt1, pt2, position, characterWidth)){
+                    return ship.getRotation() < .3f & ship.getVelocity().length() < .3f;
+                }
             }
         }
         return false;

@@ -1,3 +1,6 @@
+package Util;
+
+import Models.ParticleSystem;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Texture;

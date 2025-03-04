@@ -1,3 +1,5 @@
+package Models;
+
 import org.joml.Vector2f;
 
 public class Ship {
