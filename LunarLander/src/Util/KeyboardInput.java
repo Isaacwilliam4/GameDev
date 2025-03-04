@@ -59,4 +59,8 @@ public class KeyboardInput {
      */
     private record CommandEntry(int key, boolean keyPressOnly, ICommand callback) {
     }
+
+    public HashMap<Integer, Boolean> getKeysPressed() {
+        return keysPressed;
+    }
 }

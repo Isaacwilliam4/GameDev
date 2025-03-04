@@ -4,7 +4,8 @@ public enum Menu {
     PLAYGAME,
     HIGHSCORES,
     CUSTOMIZECONTROLS,
-    CREDITS;
+    CREDITS,
+    NONE;
 
     public Menu next() {
         Menu[] values = Menu.values();

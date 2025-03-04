@@ -3,10 +3,11 @@ package Enums;
 public enum GameState {
     MENU,
     PLAYGAME,
+    GAMEPAUSED,
     ENDGAME,
     CREDITS,
     HIGHSCORES,
-    CUSTOMIZECONTROLS;
+    CUSTOMIZECONTROLS,;
 
     public GameState next() {
         GameState[] values = GameState.values();

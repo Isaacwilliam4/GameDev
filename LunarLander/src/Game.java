@@ -1,7 +1,4 @@
-import Enums.GameState;
-import Enums.Level;
-import Enums.Menu;
-import Enums.Movement;
+import Enums.*;
 import Models.ParticleSystem;
 import Models.Ship;
 import Util.GameUtils;
@@ -35,7 +32,10 @@ public class Game {
     private float score = 0;
     private List<String> scoreList = new ArrayList<>();
     private GameState gameState = GameState.MENU;
-    private Menu menuSelect = Menu.PLAYGAME;
+    private GameState pendingGameState = GameState.MENU;
+
+    private Menu menuSelect = Menu.NONE;
+    private PauseSelect pauseSelect = PauseSelect.CONTINUE;
     private List<Vector2f> terrain;
     private Font font;
     private float characterRotation = 0f;
@@ -46,7 +46,7 @@ public class Game {
     private float THRUST = -1.2f;
     private  Texture bg;
     private  Texture lunarLander;
-    private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
+    private final Rectangle displayRect = new Rectangle(-1, -1, 2, 2, -1.0f);
     private ParticleSystem particleSystemFire;
     private ParticleSystem particleSystemSmoke;
     private ParticleSystem particleSystemFireExplosion;
@@ -59,6 +59,7 @@ public class Game {
     private Level level = Level.LEVEL_1;
     private HashSet<Integer> safeZoneIdxs = new HashSet<>();
     private TimerRenderer timerRenderer = new TimerRenderer(3);
+    private boolean menuSelected = false;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -72,7 +73,7 @@ public class Game {
                 (float) Math.PI / 2f
                 );
         lunarLander = new Texture("resources/images/lunarLander.png");
-        bg = new Texture("resources/images/spacebg.png");
+        bg = new Texture("resources/images/spacebg.jpg");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 100, false);
 
         particleSystemFire = new ParticleSystem(
@@ -119,6 +120,8 @@ public class Game {
         shipCrashed = false;
         score = 0;
         timePassed = 0;
+        menuSelect = Menu.NONE;
+        initialize();
         initTerrain();
     }
 
@@ -126,6 +129,7 @@ public class Game {
         List<Vector2f> terrain = new ArrayList<>();
         terrain.add(new Vector2f(-1, 0));
         terrain.add(new Vector2f(1, 0));
+        this.safeZoneIdxs.clear();
         switch (level) {
             case LEVEL_1 -> {
                 this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
@@ -148,78 +152,57 @@ public class Game {
         }
 
     }
+
     private void registerKeys() {
-        inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
-            if (gameState == GameState.MENU){
-                switch (menuSelect) {
-                    case PLAYGAME -> {
-                        gameState = GameState.PLAYGAME;
-                        startGame();
+        switch (gameState) {
+            case MENU -> {
+                inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
+                    switch (menuSelect) {
+                        case PLAYGAME -> {
+                            pendingGameState = GameState.PLAYGAME;
+                            startGame();
+                        }
+                        case HIGHSCORES -> pendingGameState = GameState.HIGHSCORES;
+                        case CUSTOMIZECONTROLS -> pendingGameState = GameState.CUSTOMIZECONTROLS;
+                        case CREDITS -> pendingGameState = GameState.CREDITS;
                     }
-                    case HIGHSCORES -> gameState = GameState.HIGHSCORES;
-                    case CUSTOMIZECONTROLS -> gameState = GameState.CUSTOMIZECONTROLS;
-                    case CREDITS -> gameState = GameState.CREDITS;
-                }
+                });
+                inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> menuSelect = menuSelect.previous());
+                inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> menuSelect = menuSelect.next());
+                inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> menuSelect = menuSelect.previous());
+                inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> menuSelect = menuSelect.next());
             }
-        });
-        // Register the inputs we want to have invoked
-        inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> {
-            if (gameState == GameState.MENU) {
-                menuSelect = menuSelect.previous();
+            case PLAYGAME -> {
+                inputKeyboard.registerCommand(GLFW_KEY_UP, false, (double elapsedTime) -> makeMove(Movement.UP));
+                inputKeyboard.registerCommand(GLFW_KEY_DOWN, false, (double elapsedTime) -> makeMove(Movement.DOWN));
+                inputKeyboard.registerCommand(GLFW_KEY_LEFT, false, (double elapsedTime) -> makeMove(Movement.LEFT));
+                inputKeyboard.registerCommand(GLFW_KEY_RIGHT, false, (double elapsedTime) -> makeMove(Movement.RIGHT));
+                inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> pendingGameState = GameState.GAMEPAUSED);
             }
-            else{
-                makeMove(Movement.UP);
+            case GAMEPAUSED -> {
+                inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
+                    switch (pauseSelect) {
+                        case CONTINUE -> pendingGameState = GameState.PLAYGAME;
+                        case QUIT -> pendingGameState = GameState.MENU;
+                    }
+                });
+                inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> pauseSelect = pauseSelect.previous());
+                inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> pauseSelect = pauseSelect.next());
             }
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> {
-            if (gameState == GameState.MENU) {
-                menuSelect = menuSelect.next();
+            case HIGHSCORES, CUSTOMIZECONTROLS, CREDITS -> {
+                inputKeyboard.registerCommand(GLFW_KEY_BACKSPACE, true, (double elapsedTime) -> pendingGameState = GameState.MENU);
             }
-            else{
-                makeMove(Movement.DOWN);
-            }
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_UP, false, (double elapsedTime) -> {
-            if (gameState == GameState.MENU) {
-                menuSelect = menuSelect.previous();
-            }
-            else{
-                makeMove(Movement.UP);
-            }
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_DOWN, false, (double elapsedTime) -> {
-            if (gameState == GameState.MENU) {
-                menuSelect = menuSelect.next();
-            }
-            else{
-                makeMove(Movement.DOWN);
-            }
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_LEFT, false, (double elapsedTime) -> {
-            makeMove(Movement.LEFT);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, false, (double elapsedTime) -> {
-            makeMove(Movement.RIGHT);
-        });
-
-        inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> {
-            glfwSetWindowShouldClose(graphics.getWindow(), true);
-        });
-
-
-        inputKeyboard.registerCommand(GLFW_KEY_BACKSPACE, true, (double elapsedTime) -> {
-            gameState = GameState.MENU;
-        });
-
-
-        inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> {
-            gameState = GameState.HIGHSCORES;
-        });
-
-        inputKeyboard.registerCommand(GLFW_KEY_F6, true, (double elapsedTime) -> {
-            gameState = GameState.CREDITS;
-        });
+        }
     }
+
+    private void updateGameState() {
+        if (pendingGameState != null) {
+            gameState = pendingGameState;
+            pendingGameState = null;
+            registerKeys();
+        }
+    }
+
 
     private void makeMove(Movement move){
         if (gameState != GameState.MENU & !shipLanded) {
@@ -275,17 +258,17 @@ public class Game {
     }
 
     private void update(double elapsedTime) {
+        updateGameState();
         if (gameState == GameState.PLAYGAME){
             shipLanded = GameUtils.hasLanded(terrain,
                     ship.getPosition(),
-                    ship.CHARACTER_WIDTH / 2, ship, safeZoneIdxs);
+                    ship.CHARACTER_WIDTH / 2.5f, ship, safeZoneIdxs);
             if (shipLanded){
                 switch (level) {
                     case LEVEL_1 -> {
                         timerRenderer.update(elapsedTime);
                         if (timerRenderer.isDone()){
                             level = level.next();
-                            initialize();
                             startGame();
                         }
                     }
@@ -297,7 +280,7 @@ public class Game {
             else{
                 shipCrashed = GameUtils.hasCrashed(terrain,
                         ship.getPosition(),
-                        ship.CHARACTER_WIDTH / 2);
+                        ship.CHARACTER_WIDTH / 2.5f);
 
                 if (!shipCrashed){
                     timePassed += elapsedTime;
@@ -317,34 +300,19 @@ public class Game {
         }
     }
 
-    private void drawMenu(String text, float top, float left, float height) {
+    private void drawSelect(String text, Enum selected){
         String[] stringArr = text.split("\n");
-
         int idx = 0;
         for (String str: stringArr){
-            float newTop = top + (idx * height);
-            if (menuSelect.ordinal() == idx){
-                graphics.drawTextByHeight(font, str, left, newTop, height, Color.YELLOW);
+            float newTop = MENU_TOP + (idx * TEXT_HEIGHT);
+            if (selected.ordinal() == idx){
+                graphics.drawTextByHeight(font, str, MENU_LEFT, newTop, TEXT_HEIGHT, Color.YELLOW);
             }
             else{
-                graphics.drawTextByHeight(font, str, left, newTop, height, TEXT_COLOR);
+                graphics.drawTextByHeight(font, str, MENU_LEFT, newTop, TEXT_HEIGHT, TEXT_COLOR);
             }
             idx++;
         }
-    }
-
-    private void drawMenu(){
-        String menuText =
-                """
-                    Start a New Game
-                    View High Scores
-                    Customize Controls
-                    View Credits
-                """;
-
-        StringBuilder menuBuilder = new StringBuilder();
-        menuBuilder.append(menuText);
-        drawMenu(menuBuilder.toString(), MENU_TOP, MENU_LEFT, TEXT_HEIGHT);
     }
 
     private void renderTerrain(){
@@ -363,8 +331,9 @@ public class Game {
             Vector3f t2pt3 = new Vector3f(pt2.x, 1, 0);
             Triangle t2 = new Triangle(t2pt1, t2pt2, t2pt3);
 
-            graphics.draw(t1, Color.YELLOW);
-            graphics.draw(t2, Color.YELLOW);
+            Color gray = new Color(0.5f, 0.5f, 0.5f);
+            graphics.draw(t1, gray);
+            graphics.draw(t2, gray);
         }
     }
 
@@ -382,7 +351,14 @@ public class Game {
 
         switch (gameState) {
             case MENU -> {
-                drawMenu();
+                String menuText =
+                        """
+                            Start a New Game
+                            View High Scores
+                            Customize Controls
+                            View Credits
+                        """;
+                drawSelect(menuText, menuSelect);
             }
             case PLAYGAME -> {
                 graphics.draw(bg, displayRect, Color.WHITE);
@@ -406,8 +382,14 @@ public class Game {
                         particleSystemRendererFire.render(graphics, particleSystemFireExplosion);
                     }
                 }
-
-
+            }
+            case GAMEPAUSED -> {
+                String pauseText =
+                        """
+                            Continue
+                            Quit
+                        """;
+                drawSelect(pauseText, pauseSelect);
             }
         }
         graphics.end();
