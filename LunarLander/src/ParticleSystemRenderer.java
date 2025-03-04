@@ -20,4 +20,5 @@ public class ParticleSystemRenderer {
             graphics.draw(texParticle, particle.area, particle.rotation, particle.center, Color.WHITE);
         }
     }
+
 }

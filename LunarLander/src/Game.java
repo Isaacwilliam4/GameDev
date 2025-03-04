@@ -43,8 +43,11 @@ public class Game {
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
     private ParticleSystem particleSystemFire;
     private ParticleSystem particleSystemSmoke;
+    private ParticleSystem particleSystemFireExplosion;
+    private ParticleSystem particleSystemSmokeExplosion;
     private ParticleSystemRenderer particleSystemRendererFire;
     private ParticleSystemRenderer particleSystemRendererSmoke;
+    private boolean shipCrashed = false;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -52,7 +55,7 @@ public class Game {
     }
 
     public void initialize() {
-        ship = new Ship(new Vector2f(0f, 0.1f),
+        ship = new Ship(new Vector2f(0f, -0.5f),
                         new Vector2f(0f, 0f),
                         GRAVITY,
                 (float) Math.PI / 2f
@@ -74,11 +77,28 @@ public class Game {
                 0.07f, 0.05f,
                 3, 1, 0.2f);
 
+        particleSystemFireExplosion = new ParticleSystem(
+                ship.getPosition(),
+                ship.getForward(),
+                0.01f, 0.005f,
+                0.12f, 0.05f,
+                2, 0.5f, (float) (2*Math.PI));
+
+        particleSystemSmokeExplosion = new ParticleSystem(
+                ship.getPosition(),
+                ship.getForward(),
+                0.015f, 0.004f,
+                0.07f, 0.05f,
+                3, 1, (float) (2*Math.PI));
+
         particleSystemRendererFire = new ParticleSystemRenderer();
         particleSystemRendererFire.initialize("resources/images/fire.png");
 
         particleSystemRendererSmoke = new ParticleSystemRenderer();
         particleSystemRendererSmoke.initialize("resources/images/smoke.png");
+
+        particleSystemSmokeExplosion.setTimeToCreate(0.5);
+        particleSystemFireExplosion.setTimeToCreate(0.5);
         registerKeys();
     }
 
@@ -222,12 +242,30 @@ public class Game {
 
     private void update(double elapsedTime) {
         if (gameState == GameState.PLAYGAME){
-            timePassed += elapsedTime;
-            ship.update(elapsedTime);
-            particleSystemFire.update(elapsedTime, ship.isThrustActive());
-            particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
-            ship.setAcceleration(GRAVITY);
-            ship.setThrustActive(false);
+            List<Vector2f> terrainClone = new ArrayList<>();
+            for (Vector2f v: terrain){
+                terrainClone.add(new Vector2f(v.x,v.y));
+            }
+
+            shipCrashed = GameUtils.hasCrashed(terrainClone,
+                    new Vector2f(ship.getPosition().x, ship.getPosition().y),
+                    ship.CHARACTER_WIDTH);
+
+            if (!shipCrashed){
+                timePassed += elapsedTime;
+                ship.update(elapsedTime);
+                particleSystemFire.update(elapsedTime, ship.isThrustActive());
+                particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
+                ship.setAcceleration(GRAVITY);
+                ship.setThrustActive(false);
+            }
+            else{
+                particleSystemFireExplosion.setCenter(ship.getPosition());
+                particleSystemSmokeExplosion.setCenter(ship.getPosition());
+                particleSystemSmokeExplosion.updateWithTimeLimit(elapsedTime);
+                particleSystemFireExplosion.updateWithTimeLimit(elapsedTime);
+            }
+
         }
     }
 
@@ -300,9 +338,16 @@ public class Game {
             case PLAYGAME -> {
                 graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
-                renderShip();
-                particleSystemRendererSmoke.render(graphics, particleSystemSmoke);
-                particleSystemRendererFire.render(graphics, particleSystemFire);
+                if (!shipCrashed){
+                    renderShip();
+                    particleSystemRendererSmoke.render(graphics, particleSystemSmoke);
+                    particleSystemRendererFire.render(graphics, particleSystemFire);
+                }
+                else{
+                    particleSystemRendererSmoke.render(graphics, particleSystemSmokeExplosion);
+                    particleSystemRendererFire.render(graphics, particleSystemFireExplosion);
+                }
+
             }
         }
         graphics.end();

@@ -15,6 +15,7 @@ public class ParticleSystem {
     private final float lifetimeMean;
     private final float lifetimeStdDev;
     private final float angleStdDev;
+    private double timeToCreate;
 
     public ParticleSystem(Vector2f center,
                           Vector2f direction,
@@ -62,6 +63,30 @@ public class ParticleSystem {
 
     }
 
+    public void updateWithTimeLimit(double gameTime) {
+        timeToCreate -= gameTime;
+        // Update existing particles
+        List<Long> removeMe = new ArrayList<>();
+        for (Particle p : particles.values()) {
+            if (!p.update(gameTime)) {
+                removeMe.add(p.name);
+            }
+        }
+
+        // Remove dead particles
+        for (Long key : removeMe) {
+            particles.remove(key);
+        }
+
+        if (timeToCreate > 0){
+            // Generate some new particles
+            for (int i = 0; i < 8; i++) {
+                var particle = create();
+                particles.put(particle.name, particle);
+            }
+        }
+    }
+
     public Collection<Particle> getParticles() {
         return this.particles.values();
     }
@@ -101,5 +126,13 @@ public class ParticleSystem {
 
     public void setDirection(Vector2f direction) {
         this.direction = direction;
+    }
+
+    public double getTimeToCreate() {
+        return timeToCreate;
+    }
+
+    public void setTimeToCreate(double timeToCreate) {
+        this.timeToCreate = timeToCreate;
     }
 }
