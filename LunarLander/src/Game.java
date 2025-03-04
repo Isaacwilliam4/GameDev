@@ -15,37 +15,13 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private int mazeSize = 3;
-    private float CELL_SIZE;
-    private final float CELL_WALL_THICKNESS = 0.002f;
     private final float MAZE_LEFT = -0.5f;
     private final float MAZE_TOP = -0.5f;
     private final float MENU_LEFT = -0.2f;
     private final float MENU_TOP = -0.2f;
-    private final int STEP_ON_SHORTEST_PATH_SCORE = 5;
     private final float TEXT_HEIGHT = 0.038f;
     private final Color TEXT_COLOR = Color.WHITE;
-    private final Color MAZE_COLOR = Color.WHITE;
-    private final DecimalFormat decimalFormat = new DecimalFormat("0.##");
-    private final String instructionText;
-    private MazeCell[][] maze;
-    private Rectangle rectCircle;
-    private Rectangle rectCircleEnd;
-    private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
-    private Texture character;
-    private Texture endSignal;
-    private Texture bg;
-    private Texture breadCrumb;
-    private Texture hint;
-    private Font font;
-    private MazeCell characterLocation;
-    private MazeCell previousLocation;
     private final KeyboardInput inputKeyboard;
-    private MazeCell startLocation;
-    private MazeCell endLocation;
-    private boolean showHint = false;
-    private boolean showBreadCrumbs = false;
-    private boolean showPath = false;
     private double timePassed = 0;
     private float score = 0;
     private List<String> scoreList = new ArrayList<>();
@@ -53,25 +29,24 @@ public class Game {
     private GameState gameState = GameState.MENU;
     private Menu menuSelect = Menu.PLAYGAME;
     private List<Vector2f> terrain;
+    private Rectangle ship;
+    private Font font;
+    private float characterRotation = 0f;
+    private Vector2f characterLocation = new Vector2f(0f, 0.3f);
+    private float CHARACTER_WIDTH = 0.05f;
+    private float ROTATION_SPEED = 0.075f;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
         this.inputKeyboard = new KeyboardInput(graphics.getWindow());
-        this.instructionText = "5x5 Maze - f1\n" +
-                "10x10 Maze - f2\n" +
-                "15x15 Maze - f3\n" +
-                "20x20 Maze - f4\n" +
-                "Display High Scores - f5\n" +
-                "Display Credits - f6\n" +
-                "Go to Menu - Backspace";
     }
 
     public void initialize() {
-        endSignal = new Texture("resources/images/galaxy.png");
-        character = new Texture("resources/images/alien.png");
-        breadCrumb = new Texture("resources/images/star.png");
-        hint = new Texture("resources/images/rocket.png");
-        bg = new Texture("resources/images/spacebg.png");
+//        endSignal = new Texture("resources/images/galaxy.png");
+//        character = new Texture("resources/images/alien.png");
+//        breadCrumb = new Texture("resources/images/star.png");
+//        hint = new Texture("resources/images/rocket.png");
+//        bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
         registerKeys();
     }
@@ -119,25 +94,7 @@ public class Game {
                 makeMove(Movement.DOWN);
             }
         });
-        inputKeyboard.registerCommand(GLFW_KEY_A, true, (double elapsedTime) -> {
-            makeMove(Movement.LEFT);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_D, true, (double elapsedTime) -> {
-            makeMove(Movement.RIGHT);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_I, true, (double elapsedTime) -> {
-            makeMove(Movement.UP);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_K, true, (double elapsedTime) -> {
-            makeMove(Movement.DOWN);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_J, true, (double elapsedTime) -> {
-            makeMove(Movement.LEFT);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_L, true, (double elapsedTime) -> {
-            makeMove(Movement.RIGHT);
-        });
-        inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> {
+        inputKeyboard.registerCommand(GLFW_KEY_UP, false, (double elapsedTime) -> {
             if (gameState == GameState.MENU) {
                 menuSelect = menuSelect.previous();
             }
@@ -145,7 +102,7 @@ public class Game {
                 makeMove(Movement.UP);
             }
         });
-        inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> {
+        inputKeyboard.registerCommand(GLFW_KEY_DOWN, false, (double elapsedTime) -> {
             if (gameState == GameState.MENU) {
                 menuSelect = menuSelect.next();
             }
@@ -153,55 +110,22 @@ public class Game {
                 makeMove(Movement.DOWN);
             }
         });
-        inputKeyboard.registerCommand(GLFW_KEY_LEFT, true, (double elapsedTime) -> {
+        inputKeyboard.registerCommand(GLFW_KEY_LEFT, false, (double elapsedTime) -> {
             makeMove(Movement.LEFT);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, true, (double elapsedTime) -> {
+        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, false, (double elapsedTime) -> {
             makeMove(Movement.RIGHT);
         });
 
         inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> {
             glfwSetWindowShouldClose(graphics.getWindow(), true);
         });
-        inputKeyboard.registerCommand(GLFW_KEY_P, true, (double elapsedTime) -> {
-            showPath = !showPath;
-        });
 
-        inputKeyboard.registerCommand(GLFW_KEY_B, true, (double elapsedTime) -> {
-            showBreadCrumbs = !showBreadCrumbs;
-        });
-
-        inputKeyboard.registerCommand(GLFW_KEY_H, true, (double elapsedTime) -> {
-            showHint = !showHint;
-        });
 
         inputKeyboard.registerCommand(GLFW_KEY_BACKSPACE, true, (double elapsedTime) -> {
             gameState = GameState.MENU;
         });
 
-        inputKeyboard.registerCommand(GLFW_KEY_F1, true, (double elapsedTime) -> {
-            gameState = GameState.PLAYGAME;
-            mazeSize = 5;
-            startGame();
-        });
-
-        inputKeyboard.registerCommand(GLFW_KEY_F2, true, (double elapsedTime) -> {
-            gameState = GameState.PLAYGAME;
-            mazeSize = 10;
-            startGame();
-        });
-
-        inputKeyboard.registerCommand(GLFW_KEY_F3, true, (double elapsedTime) -> {
-            gameState = GameState.PLAYGAME;
-            mazeSize = 15;
-            startGame();
-        });
-
-        inputKeyboard.registerCommand(GLFW_KEY_F4, true, (double elapsedTime) -> {
-            gameState = GameState.PLAYGAME;
-            mazeSize = 50;
-            startGame();
-        });
 
         inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> {
             gameState = GameState.HIGHSCORES;
@@ -214,17 +138,21 @@ public class Game {
 
     private void makeMove(Movement move){
         if (gameState != GameState.MENU) {
+            switch (move){
+                case RIGHT ->{
+                    characterRotation += ROTATION_SPEED;
+                }
+                case LEFT ->{
+                    characterRotation -= ROTATION_SPEED;
+                }
+            }
         }
     }
 
 
 
     public void shutdown() {
-        character.cleanup();
-        endSignal.cleanup();
-        bg.cleanup();
-        breadCrumb.cleanup();
-        hint.cleanup();
+
     }
 
     public void run() {
@@ -319,6 +247,11 @@ public class Game {
         }
     }
 
+    private void renderShip(){
+        Rectangle r = new Rectangle(characterLocation.x - (CHARACTER_WIDTH / 2), characterLocation.y - (CHARACTER_WIDTH / 2), CHARACTER_WIDTH, CHARACTER_WIDTH);
+        graphics.draw(r, characterRotation, characterLocation, Color.RED);
+    }
+
     private void render(long window, double elapsedTime) {
         graphics.begin();
 
@@ -328,8 +261,7 @@ public class Game {
             }
             case PLAYGAME -> {
                 renderTerrain();
-//                Rectangle r = new Rectangle(-1f, -0.5f, 0.1f, 0.1f);
-//                graphics.draw(r, Color.RED);
+                renderShip();
             }
         }
         graphics.end();
