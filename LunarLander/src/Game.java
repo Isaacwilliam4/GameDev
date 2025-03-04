@@ -29,12 +29,17 @@ public class Game {
     private GameState gameState = GameState.MENU;
     private Menu menuSelect = Menu.PLAYGAME;
     private List<Vector2f> terrain;
-    private Rectangle ship;
     private Font font;
     private float characterRotation = 0f;
     private Vector2f characterLocation = new Vector2f(0f, 0.3f);
+    private Ship ship;
     private float CHARACTER_WIDTH = 0.05f;
     private float ROTATION_SPEED = 0.075f;
+    private float GRAVITY = 0.1f;
+    private float MAX_ACCELERATION = 0.05f;
+    private  Texture bg;
+    private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
+
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -46,7 +51,12 @@ public class Game {
 //        character = new Texture("resources/images/alien.png");
 //        breadCrumb = new Texture("resources/images/star.png");
 //        hint = new Texture("resources/images/rocket.png");
-//        bg = new Texture("resources/images/spacebg.png");
+        ship = new Ship(new Vector2f(0f, 0.1f),
+                        new Vector2f(0f, 0f),
+                        new Vector2f(0, GRAVITY),
+                        0f
+                );
+        bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
         registerKeys();
     }
@@ -140,10 +150,16 @@ public class Game {
         if (gameState != GameState.MENU) {
             switch (move){
                 case RIGHT ->{
-                    characterRotation += ROTATION_SPEED;
+                    ship.setRotation(ship.getRotation()+ROTATION_SPEED);
                 }
                 case LEFT ->{
-                    characterRotation -= ROTATION_SPEED;
+                    ship.setRotation(ship.getRotation()-ROTATION_SPEED);
+                }
+                case UP -> {
+//                    Vector2f acceleration = new Vector2f((float)Math.cos(ship.getRotation()), (float)Math.sin(ship.getRotation()));
+//                    Vector2f acceleration = new Vector2f(0, GRAVITY);
+//                    acceleration.mul(MAX_ACCELERATION);
+//                    ship.setAcceleration(acceleration);
                 }
             }
         }
@@ -181,18 +197,7 @@ public class Game {
     private void update(double elapsedTime) {
         if (gameState == GameState.PLAYGAME){
             timePassed += elapsedTime;
-
-        }
-    }
-
-    private void drawTextWithNewLines(String text, float top, float left, float height) {
-        String[] stringArr = text.split("\n");
-
-        int idx = 0;
-        for (String str: stringArr){
-            float newTop = top + (idx * height);
-            graphics.drawTextByHeight(font, str, left, newTop, height, TEXT_COLOR);
-            idx++;
+            ship.update(elapsedTime);
         }
     }
 
@@ -248,8 +253,11 @@ public class Game {
     }
 
     private void renderShip(){
-        Rectangle r = new Rectangle(characterLocation.x - (CHARACTER_WIDTH / 2), characterLocation.y - (CHARACTER_WIDTH / 2), CHARACTER_WIDTH, CHARACTER_WIDTH);
-        graphics.draw(r, characterRotation, characterLocation, Color.RED);
+        Rectangle r = new Rectangle(ship.getPosition().x - (CHARACTER_WIDTH / 2),
+                ship.getPosition().y - (CHARACTER_WIDTH),
+                CHARACTER_WIDTH,
+                CHARACTER_WIDTH*2);
+        graphics.draw(r, ship.getRotation(), ship.getPosition(), Color.RED);
     }
 
     private void render(long window, double elapsedTime) {
@@ -260,6 +268,7 @@ public class Game {
                 drawMenu();
             }
             case PLAYGAME -> {
+                graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
                 renderShip();
             }
