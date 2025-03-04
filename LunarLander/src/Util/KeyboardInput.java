@@ -63,4 +63,9 @@ public class KeyboardInput {
     public HashMap<Integer, Boolean> getKeysPressed() {
         return keysPressed;
     }
+
+    public void clear(){
+        commandEntries.clear();
+        keysPressed.clear();
+    }
 }

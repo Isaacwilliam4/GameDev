@@ -9,13 +9,15 @@ public class Ship {
     private Vector2f velocity;
     private Vector2f acceleration;
     private float rotation;
+    private float fuel;
     private boolean thrustActive = false;
 
-    public Ship(Vector2f position, Vector2f velocity, Vector2f acceleration, float rotation) {
+    public Ship(Vector2f position, Vector2f velocity, Vector2f acceleration, float rotation, float fuel) {
         this.position = position;
         this.velocity = velocity;
         this.acceleration = acceleration;
         this.rotation = rotation;
+        this.fuel = fuel;
     }
 
     public void update(double timeElapsed) {
@@ -29,6 +31,9 @@ public class Ship {
         positiondt.add(velocity);
         positiondt.mul(timeElapsedf);
         position.add(positiondt);
+        if (thrustActive) {
+            fuel -= (float) timeElapsed;
+        }
     }
 
     public Vector2f getBottom() {
@@ -89,5 +94,13 @@ public class Ship {
 
     public void setRotation(float rotation) {
         this.rotation = rotation;
+    }
+
+    public float getFuel() {
+        return fuel;
+    }
+
+    public void setFuel(float fuel) {
+        this.fuel = fuel;
     }
 }

@@ -81,7 +81,13 @@ public class GameUtils {
         return false;
     }
 
-    public static boolean hasLanded(List<Vector2f> terrain, Vector2f position, float characterWidth, Ship ship, HashSet<Integer> safeZoneIdxs){
+    public static boolean hasLanded(List<Vector2f> terrain,
+                                    Vector2f position,
+                                    float characterWidth,
+                                    Ship ship,
+                                    HashSet<Integer> safeZoneIdxs,
+                                    float maxRotation,
+                                    float maxVelocity){
 
         for (int i = 0; i < terrain.size()-1; i++) {
             if (safeZoneIdxs.contains(i)){
@@ -91,7 +97,7 @@ public class GameUtils {
                 if (lineCircleIntersection(pt1, pt2, position, characterWidth)){
                     double rotationD = Math.toDegrees(ship.getRotation());
                     float velocityLen = ship.getVelocity().length();
-                    return Math.abs(rotationD) < 5 & velocityLen < .02f;
+                    return Math.abs(rotationD) < maxRotation & velocityLen < maxVelocity;
                 }
             }
         }

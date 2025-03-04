@@ -5,7 +5,7 @@ import edu.usu.graphics.Font;
 import edu.usu.graphics.Graphics2D;
 
 public class TimerRenderer {
-    private float seconds;
+    private final float seconds;
     private float secondsLeft;
     private boolean done = false;
 
@@ -24,6 +24,10 @@ public class TimerRenderer {
     public void render(Graphics2D graphics, Font font) {
         String num = String.format("%02d", (int) secondsLeft + 1);
         graphics.drawTextByHeight(font, num, -.1f, -.1f, .2f, Color.RED);
+    }
+
+    public void reset(){
+        this.secondsLeft = seconds;
     }
 
     public boolean isDone() {

@@ -38,6 +38,8 @@ public class Game {
     private PauseSelect pauseSelect = PauseSelect.CONTINUE;
     private List<Vector2f> terrain;
     private Font font;
+    private final float MAX_ROTATION = 5f;
+    private final float MAX_VELOCITY = 0.02f;
     private float characterRotation = 0f;
     private Vector2f characterLocation = new Vector2f(0f, 0.3f);
     private Ship ship;
@@ -59,7 +61,9 @@ public class Game {
     private Level level = Level.LEVEL_1;
     private HashSet<Integer> safeZoneIdxs = new HashSet<>();
     private TimerRenderer timerRenderer = new TimerRenderer(3);
-    private boolean menuSelected = false;
+    private TimerRenderer endGameRnderer = new TimerRenderer(1);
+    private boolean startNewLevel;
+    private boolean scoreAdded;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -67,10 +71,20 @@ public class Game {
     }
 
     public void initialize() {
+        scoreAdded = false;
+        startNewLevel = true;
+        shipLanded = false;
+        shipCrashed = false;
+        score = 0;
+        timePassed = 0;
+        menuSelect = Menu.NONE;
+        timerRenderer.reset();
+        endGameRnderer.reset();
         ship = new Ship(new Vector2f(0f, -0.5f),
                         new Vector2f(0f, 0f),
                         GRAVITY,
-                (float) Math.PI / 2f
+                (float) Math.PI / 2f,
+                10
                 );
         lunarLander = new Texture("resources/images/lunarLander.png");
         bg = new Texture("resources/images/spacebg.jpg");
@@ -112,16 +126,6 @@ public class Game {
 
         particleSystemSmokeExplosion.setTimeToCreate(0.2);
         particleSystemFireExplosion.setTimeToCreate(0.2);
-        registerKeys();
-    }
-
-    public void startGame(){
-        shipLanded = false;
-        shipCrashed = false;
-        score = 0;
-        timePassed = 0;
-        menuSelect = Menu.NONE;
-        initialize();
         initTerrain();
     }
 
@@ -135,15 +139,15 @@ public class Game {
                 this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
                 Random rand = new Random();
                 int midIdx = this.terrain.size() / 2;
-                int safeZoneIdx1 = rand.nextInt(5, midIdx - 5);
-                int safeZoneIdx2 = rand.nextInt(midIdx + 5, this.terrain.size() - 5);
+                int safeZoneIdx1 = rand.nextInt(5, midIdx);
+                int safeZoneIdx2 = rand.nextInt(midIdx, this.terrain.size() - 50);
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, this.safeZoneWidth));
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, this.safeZoneWidth));
             }
             case LEVEL_2 -> {
                 this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
                 Random rand = new Random();
-                int safeZoneIdx1 = rand.nextInt(50, this.terrain.size() - 10);
+                int safeZoneIdx1 = rand.nextInt(50, this.terrain.size() - 50);
                 this.safeZoneWidth = 0.05f;
                 this.safeZoneIdxs = new HashSet<>();
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, this.safeZoneWidth));
@@ -154,13 +158,14 @@ public class Game {
     }
 
     private void registerKeys() {
+        inputKeyboard.clear();
         switch (gameState) {
             case MENU -> {
                 inputKeyboard.registerCommand(GLFW_KEY_ENTER, true, (double elapsedTime) -> {
                     switch (menuSelect) {
                         case PLAYGAME -> {
                             pendingGameState = GameState.PLAYGAME;
-                            startGame();
+                            initialize();
                         }
                         case HIGHSCORES -> pendingGameState = GameState.HIGHSCORES;
                         case CUSTOMIZECONTROLS -> pendingGameState = GameState.CUSTOMIZECONTROLS;
@@ -189,8 +194,8 @@ public class Game {
                 inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> pauseSelect = pauseSelect.previous());
                 inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> pauseSelect = pauseSelect.next());
             }
-            case HIGHSCORES, CUSTOMIZECONTROLS, CREDITS -> {
-                inputKeyboard.registerCommand(GLFW_KEY_BACKSPACE, true, (double elapsedTime) -> pendingGameState = GameState.MENU);
+            case HIGHSCORES, CUSTOMIZECONTROLS, CREDITS, ENDGAME -> {
+                inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> pendingGameState = GameState.MENU);
             }
         }
     }
@@ -205,7 +210,7 @@ public class Game {
 
 
     private void makeMove(Movement move){
-        if (gameState != GameState.MENU & !shipLanded) {
+        if (gameState != GameState.MENU & !shipLanded & ship.getFuel() > 0) {
             switch (move){
                 case RIGHT ->{
                     ship.setRotation(ship.getRotation()+ROTATION_SPEED);
@@ -258,43 +263,68 @@ public class Game {
     }
 
     private void update(double elapsedTime) {
+        timePassed += elapsedTime;
         updateGameState();
-        if (gameState == GameState.PLAYGAME){
-            shipLanded = GameUtils.hasLanded(terrain,
-                    ship.getPosition(),
-                    ship.CHARACTER_WIDTH / 2.5f, ship, safeZoneIdxs);
-            if (shipLanded){
-                switch (level) {
-                    case LEVEL_1 -> {
-                        timerRenderer.update(elapsedTime);
-                        if (timerRenderer.isDone()){
-                            level = level.next();
-                            startGame();
+        switch (gameState) {
+            case PLAYGAME -> {
+                shipLanded = GameUtils.hasLanded(terrain,
+                        ship.getPosition(),
+                        ship.CHARACTER_WIDTH / 2.5f,
+                        ship,
+                        safeZoneIdxs,
+                        MAX_ROTATION,
+                        MAX_VELOCITY);
+                if (shipLanded){
+                    switch (level) {
+                        case LEVEL_1 -> {
+                            score += 100;
+                            timerRenderer.update(elapsedTime);
+                            if (timerRenderer.isDone()){
+                                level = level.next();
+                                initialize();
+                            }
+                        }
+                        case LEVEL_2 -> {
+                            score += 200;
+                            pendingGameState = GameState.ENDGAME;
                         }
                     }
-                    case LEVEL_2 -> {
-                        gameState = GameState.HIGHSCORES;
+                }
+                else{
+                    shipCrashed = GameUtils.hasCrashed(terrain,
+                            ship.getPosition(),
+                            ship.CHARACTER_WIDTH / 2.5f);
+                    if (startNewLevel){
+                        elapsedTime = 0;
+                        startNewLevel = false;
+                    }
+                    if (!shipCrashed){
+                        timePassed += elapsedTime;
+                        ship.update(elapsedTime);
+                        particleSystemFire.update(elapsedTime, ship.isThrustActive());
+                        particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
+                        ship.setAcceleration(GRAVITY);
+                        ship.setThrustActive(false);
+                    }
+                    else{
+                        endGameRnderer.update(elapsedTime);
+                        if (endGameRnderer.isDone()){
+                            pendingGameState = GameState.ENDGAME;
+                        }
+                        particleSystemFireExplosion.setCenter(ship.getPosition());
+                        particleSystemSmokeExplosion.setCenter(ship.getPosition());
+                        particleSystemSmokeExplosion.updateWithTimeLimit(elapsedTime);
+                        particleSystemFireExplosion.updateWithTimeLimit(elapsedTime);
                     }
                 }
             }
-            else{
-                shipCrashed = GameUtils.hasCrashed(terrain,
-                        ship.getPosition(),
-                        ship.CHARACTER_WIDTH / 2.5f);
 
-                if (!shipCrashed){
-                    timePassed += elapsedTime;
-                    ship.update(elapsedTime);
-                    particleSystemFire.update(elapsedTime, ship.isThrustActive());
-                    particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
-                    ship.setAcceleration(GRAVITY);
-                    ship.setThrustActive(false);
-                }
-                else{
-                    particleSystemFireExplosion.setCenter(ship.getPosition());
-                    particleSystemSmokeExplosion.setCenter(ship.getPosition());
-                    particleSystemSmokeExplosion.updateWithTimeLimit(elapsedTime);
-                    particleSystemFireExplosion.updateWithTimeLimit(elapsedTime);
+            case ENDGAME -> {
+                level = Level.LEVEL_1;
+                if (!scoreAdded){
+                    score += (float) (200 / timePassed);
+                    scoreList.add(score + "\n");
+                    scoreAdded = true;
                 }
             }
         }
@@ -311,6 +341,36 @@ public class Game {
             else{
                 graphics.drawTextByHeight(font, str, MENU_LEFT, newTop, TEXT_HEIGHT, TEXT_COLOR);
             }
+            idx++;
+        }
+    }
+
+    private void drawText(String text){
+        String[] stringArr = text.split("\n");
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = MENU_TOP + (idx * TEXT_HEIGHT);
+            graphics.drawTextByHeight(font, str, MENU_LEFT, newTop, TEXT_HEIGHT, TEXT_COLOR);
+            idx++;
+        }
+    }
+
+    private void drawTextWithLeftTop(String text, float left, float top){
+        String[] stringArr = text.split("\n");
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = top + (idx * TEXT_HEIGHT);
+            graphics.drawTextByHeight(font, str, left, newTop, TEXT_HEIGHT, TEXT_COLOR);
+            idx++;
+        }
+    }
+
+    private void drawTextWithLeftTopAndColor(String text, float left, float top, float textHeight, List<Color> colors){
+        String[] stringArr = text.split("\n");
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = top + (idx * textHeight);
+            graphics.drawTextByHeight(font, str, left, newTop, textHeight, colors.get(idx));
             idx++;
         }
     }
@@ -337,6 +397,37 @@ public class Game {
         }
     }
 
+    private void renderStatus(){
+
+        Color fuelColor = Color.GREEN;
+        Color velocityColor = Color.GREEN;
+        Color angleColor = Color.GREEN;
+
+        if (ship.getFuel() < 0){
+            fuelColor = Color.RED;
+        }
+        if (ship.getVelocity().length() > MAX_VELOCITY){
+            velocityColor = Color.RED;
+        }
+        if (Math.abs(Math.toDegrees(ship.getRotation())) > MAX_ROTATION){
+            angleColor = Color.RED;
+        }
+
+        List<Color> colors = new ArrayList<>();
+        colors.add(fuelColor);
+        colors.add(velocityColor);
+        colors.add(angleColor);
+
+        String text = String.format(
+                "Ship Fuel: %.2f%nShip Velocity: %.2f%nShip Angle: %.2f%n",
+                Math.max(ship.getFuel(), 0),
+                ship.getVelocity().length() * 100,
+                Math.toDegrees(ship.getRotation())
+        );
+
+        drawTextWithLeftTopAndColor(text, .5f, -.5f, 0.028f,colors);
+    }
+
     private void renderShip(){
         Rectangle r = new Rectangle(ship.getPosition().x - (ship.CHARACTER_WIDTH / 2),
                 ship.getPosition().y - (ship.CHARACTER_HEIGHT / 2),
@@ -361,6 +452,7 @@ public class Game {
                 drawSelect(menuText, menuSelect);
             }
             case PLAYGAME -> {
+                renderStatus();
                 graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
                 if (shipLanded){
@@ -390,6 +482,20 @@ public class Game {
                             Quit
                         """;
                 drawSelect(pauseText, pauseSelect);
+            }
+            case CREDITS -> {
+                drawText("Game made by Isaac Peterson.");
+            }
+            case HIGHSCORES -> {
+                StringBuilder highscores = new StringBuilder();
+                highscores.append("High Scores \n");
+                for (String s: scoreList){
+                    highscores.append(s);
+                }
+                drawText(highscores.toString());
+            }
+            case ENDGAME -> {
+                drawText("Game Over\n Your Score: " + score + "\n" + "Press Esc to Return to Menu\n");
             }
         }
         graphics.end();
