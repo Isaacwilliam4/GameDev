@@ -68,28 +68,28 @@ public class Game {
                 ship.getForward(),
                 0.01f, 0.005f,
                 0.12f, 0.05f,
-                2, 0.5f, 0.2f);
+                2, 0.5f, 0.1f);
 
         particleSystemSmoke = new ParticleSystem(
                 ship.getPosition(),
                 ship.getForward(),
                 0.015f, 0.004f,
                 0.07f, 0.05f,
-                3, 1, 0.2f);
+                3, 1, 0.1f);
 
         particleSystemFireExplosion = new ParticleSystem(
                 ship.getPosition(),
                 ship.getForward(),
                 0.01f, 0.005f,
                 0.12f, 0.05f,
-                2, 0.5f, (float) (2*Math.PI));
+                1f, 0.5f, (float) (2*Math.PI));
 
         particleSystemSmokeExplosion = new ParticleSystem(
                 ship.getPosition(),
                 ship.getForward(),
                 0.015f, 0.004f,
                 0.07f, 0.05f,
-                3, 1, (float) (2*Math.PI));
+                1, .5f, (float) (2*Math.PI));
 
         particleSystemRendererFire = new ParticleSystemRenderer();
         particleSystemRendererFire.initialize("resources/images/fire.png");
@@ -97,8 +97,8 @@ public class Game {
         particleSystemRendererSmoke = new ParticleSystemRenderer();
         particleSystemRendererSmoke.initialize("resources/images/smoke.png");
 
-        particleSystemSmokeExplosion.setTimeToCreate(0.5);
-        particleSystemFireExplosion.setTimeToCreate(0.5);
+        particleSystemSmokeExplosion.setTimeToCreate(0.2);
+        particleSystemFireExplosion.setTimeToCreate(0.2);
         registerKeys();
     }
 
