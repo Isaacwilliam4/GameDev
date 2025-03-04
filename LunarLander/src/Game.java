@@ -45,6 +45,7 @@ public class Game {
     private Vector2f GRAVITY = new Vector2f(0f, 1.0f);
     private float THRUST = -1.2f;
     private  Texture bg;
+    private  Texture lunarLander;
     private final Rectangle displayRect = new Rectangle(MAZE_LEFT, MAZE_TOP, 2*(Math.abs(MAZE_LEFT)), 2*(Math.abs(MAZE_LEFT)), -1.0f);
     private ParticleSystem particleSystemFire;
     private ParticleSystem particleSystemSmoke;
@@ -70,6 +71,7 @@ public class Game {
                         GRAVITY,
                 (float) Math.PI / 2f
                 );
+        lunarLander = new Texture("resources/images/lunarLander.png");
         bg = new Texture("resources/images/spacebg.png");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 100, false);
 
@@ -371,7 +373,8 @@ public class Game {
                 ship.getPosition().y - (ship.CHARACTER_HEIGHT / 2),
                 ship.CHARACTER_WIDTH,
                 ship.CHARACTER_HEIGHT);
-        graphics.draw(r, ship.getRotation(), ship.getPosition(), Color.RED);
+        graphics.draw(lunarLander, r, ship.getRotation(), ship.getPosition(), Color.WHITE);
+//        graphics.draw(r, ship.getRotation(), ship.getPosition(), Color.RED);
     }
 
     private void render(long window, double elapsedTime) {

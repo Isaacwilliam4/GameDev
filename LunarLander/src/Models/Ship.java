@@ -3,8 +3,8 @@ package Models;
 import org.joml.Vector2f;
 
 public class Ship {
-    public final float CHARACTER_HEIGHT = 0.02f;
-    public final float CHARACTER_WIDTH = 0.03f;
+    public final float CHARACTER_HEIGHT = 0.05f;
+    public final float CHARACTER_WIDTH = 0.05f;
     private Vector2f position;
     private Vector2f velocity;
     private Vector2f acceleration;
@@ -33,7 +33,7 @@ public class Ship {
 
     public Vector2f getBottom() {
         Vector2f _position = new Vector2f(position.x, position.y);
-        Vector2f _bottom = new Vector2f(CHARACTER_WIDTH / 2, 0);
+        Vector2f _bottom = new Vector2f(0, CHARACTER_WIDTH / 2);
 
         // Apply 2D rotation to _bottom
         float cosTheta = (float) Math.cos(rotation);
@@ -56,7 +56,7 @@ public class Ship {
     }
 
     public Vector2f getForward() {
-        return new Vector2f((float)Math.cos(rotation), (float)Math.sin(rotation));
+        return new Vector2f((float)Math.cos(rotation + Math.PI / 2), (float)Math.sin(rotation + Math.PI / 2));
     }
 
     public Vector2f getPosition() {
