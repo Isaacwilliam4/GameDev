@@ -7,6 +7,7 @@ import Models.Ship;
 import Util.GameUtils;
 import Util.KeyboardInput;
 import Util.ParticleSystemRenderer;
+import Util.TimerRenderer;
 import edu.usu.graphics.*;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Font;
@@ -51,11 +52,12 @@ public class Game {
     private ParticleSystem particleSystemSmokeExplosion;
     private ParticleSystemRenderer particleSystemRendererFire;
     private ParticleSystemRenderer particleSystemRendererSmoke;
-    private boolean shipCrashed = false;
-    private boolean shipLanded = false;
+    private boolean shipCrashed;
+    private boolean shipLanded;
     private float safeZoneWidth = 0.1f;
     private Level level = Level.LEVEL_1;
     private HashSet<Integer> safeZoneIdxs = new HashSet<>();
+    private TimerRenderer timerRenderer = new TimerRenderer(3);
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -69,7 +71,7 @@ public class Game {
                 (float) Math.PI / 2f
                 );
         bg = new Texture("resources/images/spacebg.png");
-        font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 42, false);
+        font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 100, false);
 
         particleSystemFire = new ParticleSystem(
                 ship.getBottom(),
@@ -111,6 +113,8 @@ public class Game {
     }
 
     public void startGame(){
+        shipLanded = false;
+        shipCrashed = false;
         score = 0;
         timePassed = 0;
         initTerrain();
@@ -276,9 +280,12 @@ public class Game {
             if (shipLanded){
                 switch (level) {
                     case LEVEL_1 -> {
-                        level = level.next();
-                        initialize();
-                        startGame();
+                        timerRenderer.update(elapsedTime);
+                        if (timerRenderer.isDone()){
+                            level = level.next();
+                            initialize();
+                            startGame();
+                        }
                     }
                     case LEVEL_2 -> {
                         gameState = GameState.HIGHSCORES;
@@ -378,6 +385,11 @@ public class Game {
                 graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
                 if (shipLanded){
+                    switch (level) {
+                        case LEVEL_1 -> {
+                            this.timerRenderer.render(graphics, font);
+                        }
+                    }
                     renderShip();
                 }
                 else{
