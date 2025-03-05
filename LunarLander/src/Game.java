@@ -35,6 +35,8 @@ public class Game {
     private List<String> scoreList = new ArrayList<>();
     private GameState gameState = GameState.MENU;
     private GameState pendingGameState = GameState.MENU;
+    private float LEVEL1_WIDTH = 0.1f;
+    private float LEVEL2_WIDTH = 0.05f;
 
     private Menu menuSelect = Menu.NONE;
     private PauseSelect pauseSelect = PauseSelect.CONTINUE;
@@ -70,6 +72,8 @@ public class Game {
     private Sound shipThrust;
     private Sound safeLanding;
     private Sound crash;
+    private boolean victorySoundPlayed;
+    private boolean explosionSoundPlayed;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -79,6 +83,8 @@ public class Game {
     public void initialize() {
         audio = new SoundManager();
         shipThrust = audio.load("thrust", "resources/sounds/thrust.ogg", true);
+        safeLanding = audio.load("safeLanding", "resources/sounds/finished.ogg", false);
+        crash = audio.load("explosion", "resources/sounds/explosion.ogg", false);
         lunarLander = new Texture("resources/images/lunarLander.png");
         bg = new Texture("resources/images/spacebg.jpg");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 100, false);
@@ -91,9 +97,14 @@ public class Game {
     }
 
     private void resetLevel(){
+        explosionSoundPlayed = false;
+        victorySoundPlayed = false;
         startNewLevel = true;
         shipLanded = false;
         shipCrashed = false;
+        endGameRnderer.reset();
+        timerRenderer.reset();
+
         ship = new Ship(new Vector2f(0f, -0.5f),
                 new Vector2f(0f, 0f),
                 GRAVITY,
@@ -137,8 +148,6 @@ public class Game {
         score = 0;
         timePassed = 0;
         menuSelect = Menu.NONE;
-        timerRenderer.reset();
-        endGameRnderer.reset();
         resetLevel();
     }
 
@@ -154,16 +163,15 @@ public class Game {
                 int midIdx = this.terrain.size() / 2;
                 int safeZoneIdx1 = rand.nextInt(5, midIdx);
                 int safeZoneIdx2 = rand.nextInt(midIdx, this.terrain.size() - 50);
-                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, this.safeZoneWidth));
-                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, this.safeZoneWidth));
+                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, LEVEL1_WIDTH));
+                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, LEVEL1_WIDTH));
             }
             case LEVEL_2 -> {
                 this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
                 Random rand = new Random();
                 int safeZoneIdx1 = rand.nextInt(50, this.terrain.size() - 50);
-                this.safeZoneWidth = 0.05f;
                 this.safeZoneIdxs = new HashSet<>();
-                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, this.safeZoneWidth));
+                this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, LEVEL2_WIDTH));
             }
 
         }
@@ -449,12 +457,6 @@ public class Game {
                 shipThrust.play();
             }
         }
-        if (!ship.isThrustActive() | shipCrashed | shipLanded){
-            if (shipThrust.isPlaying()){
-                shipThrust.stop();
-            }
-        }
-
         Rectangle r = new Rectangle(ship.getPosition().x - (ship.CHARACTER_WIDTH / 2),
                 ship.getPosition().y - (ship.CHARACTER_HEIGHT / 2),
                 ship.CHARACTER_WIDTH,
@@ -465,7 +467,11 @@ public class Game {
 
     private void render(long window, double elapsedTime) {
         graphics.begin();
-
+        if (!ship.isThrustActive() | shipCrashed | shipLanded){
+            if (shipThrust.isPlaying()){
+                shipThrust.stop();
+            }
+        }
         switch (gameState) {
             case MENU -> {
                 String menuText =
@@ -482,10 +488,12 @@ public class Game {
                 graphics.draw(bg, displayRect, Color.WHITE);
                 renderTerrain();
                 if (shipLanded){
-                    switch (level) {
-                        case LEVEL_1 -> {
-                            this.timerRenderer.render(graphics, font);
-                        }
+                    if (!safeLanding.isPlaying() & !victorySoundPlayed){
+                        safeLanding.play();
+                        victorySoundPlayed = true;
+                    }
+                    if (Objects.requireNonNull(level) == Level.LEVEL_1) {
+                        this.timerRenderer.render(graphics, font);
                     }
                     renderShip();
                 }
@@ -496,6 +504,9 @@ public class Game {
                         particleSystemRendererFire.render(graphics, particleSystemFire);
                     }
                     else{
+                        if (!crash.isPlaying() & !explosionSoundPlayed){
+                            crash.play();
+                        }
                         particleSystemRendererSmoke.render(graphics, particleSystemSmokeExplosion);
                         particleSystemRendererFire.render(graphics, particleSystemFireExplosion);
                     }
