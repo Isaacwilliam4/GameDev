@@ -97,7 +97,7 @@ public class GameUtils {
                 if (lineCircleIntersection(pt1, pt2, position, characterWidth)){
                     double rotationD = Math.toDegrees(ship.getRotation());
                     float velocityLen = ship.getVelocity().length();
-                    return Math.abs(rotationD) < maxRotation & velocityLen < maxVelocity;
+                    return (Math.abs(rotationD) % 360) < maxRotation & velocityLen < maxVelocity;
                 }
             }
         }

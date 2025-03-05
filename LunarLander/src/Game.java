@@ -68,6 +68,7 @@ public class Game {
     private TimerRenderer endGameRnderer = new TimerRenderer(1);
     private boolean startNewLevel;
     private boolean scoreAdded;
+    private boolean finalScoreAdded;
     private SoundManager audio;
     private Sound shipThrust;
     private Sound safeLanding;
@@ -104,6 +105,8 @@ public class Game {
         shipCrashed = false;
         endGameRnderer.reset();
         timerRenderer.reset();
+        scoreAdded = false;
+        finalScoreAdded = false;
 
         ship = new Ship(new Vector2f(0f, -0.5f),
                 new Vector2f(0f, 0f),
@@ -151,23 +154,39 @@ public class Game {
         resetLevel();
     }
 
+    private boolean terrainIsGood(){
+        for (Vector2f v : terrain){
+            if (v.y > 0.5f | v.y < -0.5f){
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void initTerrain() {
         List<Vector2f> terrain = new ArrayList<>();
         terrain.add(new Vector2f(-1, 0));
         terrain.add(new Vector2f(1, 0));
         this.safeZoneIdxs.clear();
+        boolean terrainIsGood = false;
         switch (level) {
             case LEVEL_1 -> {
-                this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
+                while (!terrainIsGood){
+                    this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.3f);
+                    terrainIsGood = terrainIsGood();
+                }
                 Random rand = new Random();
                 int midIdx = this.terrain.size() / 2;
-                int safeZoneIdx1 = rand.nextInt(5, midIdx);
+                int safeZoneIdx1 = rand.nextInt(5, midIdx - 20);
                 int safeZoneIdx2 = rand.nextInt(midIdx, this.terrain.size() - 50);
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, LEVEL1_WIDTH));
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, LEVEL1_WIDTH));
             }
             case LEVEL_2 -> {
-                this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.1f);
+                while (!terrainIsGood){
+                    this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.3f);
+                    terrainIsGood = terrainIsGood();
+                }
                 Random rand = new Random();
                 int safeZoneIdx1 = rand.nextInt(50, this.terrain.size() - 50);
                 this.safeZoneIdxs = new HashSet<>();
@@ -295,7 +314,11 @@ public class Game {
                 if (shipLanded){
                     switch (level) {
                         case LEVEL_1 -> {
-                            score += 100;
+                            if (!scoreAdded){
+                                score += 100;
+                                score += (float) (1000 / timePassed);
+                                scoreAdded = true;
+                            }
                             timerRenderer.update(elapsedTime);
                             if (timerRenderer.isDone()){
                                 level = level.next();
@@ -303,7 +326,11 @@ public class Game {
                             }
                         }
                         case LEVEL_2 -> {
-                            score += 200;
+                            if (!scoreAdded){
+                                score += 1000;
+                                score += (float) (2000 / timePassed);
+                                scoreAdded = true;
+                            }
                             pendingGameState = GameState.ENDGAME;
                         }
                     }
@@ -344,10 +371,8 @@ public class Game {
 
             case ENDGAME -> {
                 level = Level.LEVEL_1;
-                if (!scoreAdded){
-                    score += (float) (200 / timePassed);
-                    scoreList.add(score + "\n");
-                    scoreAdded = true;
+                if (!finalScoreAdded){
+                    scoreList.add(String.format("%.0f", score) + "\n");
                 }
             }
         }
@@ -443,16 +468,16 @@ public class Game {
 
         Color fuelColor = Color.GREEN;
         Color velocityColor = Color.GREEN;
-        Color angleColor = Color.GREEN;
-
+        Color angleColor = Color.RED;
+        float angleDegrees = (float) (Math.abs(Math.toDegrees(ship.getRotation())) % 360);
         if (ship.getFuel() < 0){
             fuelColor = Color.RED;
         }
         if (ship.getVelocity().length() > MAX_VELOCITY){
             velocityColor = Color.RED;
         }
-        if (Math.abs(Math.toDegrees(ship.getRotation())) > MAX_ROTATION){
-            angleColor = Color.RED;
+        if (angleDegrees > 355 | angleDegrees < 5){
+            angleColor = Color.GREEN;
         }
 
         List<Color> colors = new ArrayList<>();
@@ -464,7 +489,7 @@ public class Game {
                 "Ship Fuel: %.2f%nShip Velocity: %.2f%nShip Angle: %.2f%n",
                 Math.max(ship.getFuel(), 0),
                 ship.getVelocity().length() * 100,
-                Math.toDegrees(ship.getRotation())
+                angleDegrees
         );
 
         drawTextWithLeftTopAndColor(text, .5f, -.5f, 0.028f,colors);
@@ -552,7 +577,7 @@ public class Game {
                 drawText(highscores.toString());
             }
             case ENDGAME -> {
-                drawText("Game Over\n Your Score: " + score + "\n" + "Press Esc to Return to Menu\n");
+                drawText("Game Over\n Your Score: " + String.format("%.0f", score) + "\n" + "Press Esc to Return to Menu\n");
             }
         }
         graphics.end();
