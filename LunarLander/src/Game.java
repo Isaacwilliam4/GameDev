@@ -263,7 +263,6 @@ public class Game {
                     particleSystemFire.setDirection(ship.getForward());
                 }
                 case UP -> {
-
                     ship.setThrustActive(true);
                 }
             }
@@ -304,6 +303,9 @@ public class Game {
         updateGameState();
         switch (gameState) {
             case PLAYGAME -> {
+                if (ship.getFuel() < 0){
+                    ship.setThrustActive(false);
+                }
                 shipLanded = GameUtils.hasLanded(terrain,
                         ship.getPosition(),
                         ship.CHARACTER_WIDTH / 2.5f,
@@ -373,6 +375,7 @@ public class Game {
                 level = Level.LEVEL_1;
                 if (!finalScoreAdded){
                     scoreList.add(String.format("%.0f", score) + "\n");
+                    finalScoreAdded = true;
                 }
             }
         }
