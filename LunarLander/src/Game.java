@@ -418,6 +418,18 @@ public class Game {
             graphics.draw(t1, gray);
             graphics.draw(t2, gray);
         }
+
+        for (int i = 0; i < terrain.size() - 1; i++) {
+            Vector2f pt1 = terrain.get(i);
+            Vector2f pt2 = terrain.get(i + 1);
+
+            float dist = pt1.distance(pt2);
+            float angle = (float) Math.atan2(pt2.y - pt1.y, pt2.x - pt1.x); // Get angle between points
+
+            Rectangle r = new Rectangle(pt1.x, pt1.y, 0.01f, dist); // Increased height for visibility
+            graphics.draw(r, (float) Math.toDegrees(angle), new Vector2f(pt1.x, pt1.y), Color.WHITE); // Rotate around pt1
+        }
+
     }
 
     private void renderStatus(){

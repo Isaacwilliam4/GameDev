@@ -28,6 +28,7 @@ public class TimerRenderer {
 
     public void reset(){
         this.secondsLeft = seconds;
+        this.done = false;
     }
 
     public boolean isDone() {
