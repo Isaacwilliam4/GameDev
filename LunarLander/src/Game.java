@@ -317,8 +317,8 @@ public class Game {
                     switch (level) {
                         case LEVEL_1 -> {
                             if (!scoreAdded){
-                                score += 100;
-                                score += (float) (1000 / timePassed);
+                                score += 1000;
+                                score += (float) (10000 / timePassed);
                                 scoreAdded = true;
                             }
                             timerRenderer.update(elapsedTime);
@@ -329,8 +329,8 @@ public class Game {
                         }
                         case LEVEL_2 -> {
                             if (!scoreAdded){
-                                score += 1000;
-                                score += (float) (2000 / timePassed);
+                                score += 2000;
+                                score += (float) (20000 / timePassed);
                                 scoreAdded = true;
                             }
                             pendingGameState = GameState.ENDGAME;
