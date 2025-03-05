@@ -34,6 +34,9 @@ public class Ship {
         if (thrustActive) {
             fuel -= (float) timeElapsed;
         }
+        else if (fuel <= 0){
+            thrustActive = false;
+        }
     }
 
     public Vector2f getBottom() {

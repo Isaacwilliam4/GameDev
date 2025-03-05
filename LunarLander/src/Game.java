@@ -5,6 +5,8 @@ import Util.GameUtils;
 import Util.KeyboardInput;
 import Util.ParticleSystemRenderer;
 import Util.TimerRenderer;
+import edu.usu.audio.Sound;
+import edu.usu.audio.SoundManager;
 import edu.usu.graphics.*;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Font;
@@ -64,6 +66,10 @@ public class Game {
     private TimerRenderer endGameRnderer = new TimerRenderer(1);
     private boolean startNewLevel;
     private boolean scoreAdded;
+    private SoundManager audio;
+    private Sound shipThrust;
+    private Sound safeLanding;
+    private Sound crash;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -71,25 +77,29 @@ public class Game {
     }
 
     public void initialize() {
-        scoreAdded = false;
-        startNewLevel = true;
-        shipLanded = false;
-        shipCrashed = false;
-        score = 0;
-        timePassed = 0;
-        menuSelect = Menu.NONE;
-        timerRenderer.reset();
-        endGameRnderer.reset();
-        ship = new Ship(new Vector2f(0f, -0.5f),
-                        new Vector2f(0f, 0f),
-                        GRAVITY,
-                (float) Math.PI / 2f,
-                10
-                );
+        audio = new SoundManager();
+        shipThrust = audio.load("thrust", "resources/sounds/thrust.ogg", true);
         lunarLander = new Texture("resources/images/lunarLander.png");
         bg = new Texture("resources/images/spacebg.jpg");
         font = new Font("resources/fonts/Blacknorthdemo-mLE25.otf", 100, false);
+        particleSystemRendererFire = new ParticleSystemRenderer();
+        particleSystemRendererFire.initialize("resources/images/fire.png");
 
+        particleSystemRendererSmoke = new ParticleSystemRenderer();
+        particleSystemRendererSmoke.initialize("resources/images/smoke.png");
+        resetGame();
+    }
+
+    private void resetLevel(){
+        startNewLevel = true;
+        shipLanded = false;
+        shipCrashed = false;
+        ship = new Ship(new Vector2f(0f, -0.5f),
+                new Vector2f(0f, 0f),
+                GRAVITY,
+                (float) Math.PI / 2f,
+                10
+        );
         particleSystemFire = new ParticleSystem(
                 ship.getBottom(),
                 ship.getForward(),
@@ -117,16 +127,19 @@ public class Game {
                 0.015f, 0.004f,
                 0.07f, 0.05f,
                 1, .5f, (float) (2*Math.PI));
-
-        particleSystemRendererFire = new ParticleSystemRenderer();
-        particleSystemRendererFire.initialize("resources/images/fire.png");
-
-        particleSystemRendererSmoke = new ParticleSystemRenderer();
-        particleSystemRendererSmoke.initialize("resources/images/smoke.png");
-
         particleSystemSmokeExplosion.setTimeToCreate(0.2);
         particleSystemFireExplosion.setTimeToCreate(0.2);
         initTerrain();
+    }
+
+    private void resetGame(){
+        scoreAdded = false;
+        score = 0;
+        timePassed = 0;
+        menuSelect = Menu.NONE;
+        timerRenderer.reset();
+        endGameRnderer.reset();
+        resetLevel();
     }
 
     private void initTerrain() {
@@ -165,7 +178,7 @@ public class Game {
                     switch (menuSelect) {
                         case PLAYGAME -> {
                             pendingGameState = GameState.PLAYGAME;
-                            initialize();
+                            resetGame();
                         }
                         case HIGHSCORES -> pendingGameState = GameState.HIGHSCORES;
                         case CUSTOMIZECONTROLS -> pendingGameState = GameState.CUSTOMIZECONTROLS;
@@ -178,7 +191,7 @@ public class Game {
                 inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> menuSelect = menuSelect.next());
             }
             case PLAYGAME -> {
-                inputKeyboard.registerCommand(GLFW_KEY_UP, false, (double elapsedTime) -> makeMove(Movement.UP));
+                inputKeyboard.registerBothCommand(GLFW_KEY_UP,  (double elapsedTime) -> makeMove(Movement.UP), (double elapsedTime) -> ship.setThrustActive(false));
                 inputKeyboard.registerCommand(GLFW_KEY_DOWN, false, (double elapsedTime) -> makeMove(Movement.DOWN));
                 inputKeyboard.registerCommand(GLFW_KEY_LEFT, false, (double elapsedTime) -> makeMove(Movement.LEFT));
                 inputKeyboard.registerCommand(GLFW_KEY_RIGHT, false, (double elapsedTime) -> makeMove(Movement.RIGHT));
@@ -223,10 +236,7 @@ public class Game {
                     particleSystemFire.setDirection(ship.getForward());
                 }
                 case UP -> {
-                    Vector2f thrust = ship.getForward().mul(THRUST);
-                    ship.setAcceleration(thrust);
-                    particleSystemSmoke.setCenter(ship.getBottom());
-                    particleSystemFire.setCenter(ship.getBottom());
+
                     ship.setThrustActive(true);
                 }
             }
@@ -281,7 +291,7 @@ public class Game {
                             timerRenderer.update(elapsedTime);
                             if (timerRenderer.isDone()){
                                 level = level.next();
-                                initialize();
+                                resetLevel();
                             }
                         }
                         case LEVEL_2 -> {
@@ -299,12 +309,17 @@ public class Game {
                         startNewLevel = false;
                     }
                     if (!shipCrashed){
+                        if (ship.isThrustActive()){
+                            Vector2f thrust = ship.getForward().mul(THRUST);
+                            ship.setAcceleration(thrust);
+                            particleSystemSmoke.setCenter(ship.getBottom());
+                            particleSystemFire.setCenter(ship.getBottom());
+                        }
                         timePassed += elapsedTime;
                         ship.update(elapsedTime);
                         particleSystemFire.update(elapsedTime, ship.isThrustActive());
                         particleSystemSmoke.update(elapsedTime, ship.isThrustActive());
                         ship.setAcceleration(GRAVITY);
-                        ship.setThrustActive(false);
                     }
                     else{
                         endGameRnderer.update(elapsedTime);
@@ -429,6 +444,17 @@ public class Game {
     }
 
     private void renderShip(){
+        if (ship.isThrustActive()){
+            if (!shipThrust.isPlaying()){
+                shipThrust.play();
+            }
+        }
+        if (!ship.isThrustActive() | shipCrashed | shipLanded){
+            if (shipThrust.isPlaying()){
+                shipThrust.stop();
+            }
+        }
+
         Rectangle r = new Rectangle(ship.getPosition().x - (ship.CHARACTER_WIDTH / 2),
                 ship.getPosition().y - (ship.CHARACTER_HEIGHT / 2),
                 ship.CHARACTER_WIDTH,
