@@ -23,8 +23,6 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Game {
     private final Graphics2D graphics;
-    private final float MAZE_LEFT = -0.5f;
-    private final float MAZE_TOP = -0.5f;
     private final float MENU_LEFT = -0.2f;
     private final float MENU_TOP = -0.2f;
     private final float TEXT_HEIGHT = 0.038f;
@@ -32,11 +30,11 @@ public class Game {
     private final KeyboardInput inputKeyboard;
     private double timePassed = 0;
     private float score = 0;
-    private List<String> scoreList = new ArrayList<>();
+    private List<Integer> scoreList = new ArrayList<>();
     private GameState gameState = GameState.MENU;
     private GameState pendingGameState = GameState.MENU;
-    private float LEVEL1_WIDTH = 0.1f;
-    private float LEVEL2_WIDTH = 0.05f;
+    private float LEVEL1_WIDTH = 0.15f;
+    private float LEVEL2_WIDTH = 0.075f;
 
     private Menu menuSelect = Menu.NONE;
     private PauseSelect pauseSelect = PauseSelect.CONTINUE;
@@ -44,8 +42,6 @@ public class Game {
     private Font font;
     private final float MAX_ROTATION = 5f;
     private final float MAX_VELOCITY = 0.02f;
-    private float characterRotation = 0f;
-    private Vector2f characterLocation = new Vector2f(0f, 0.3f);
     private Ship ship;
     private float ROTATION_SPEED = 0.025f;
     private Vector2f GRAVITY = new Vector2f(0f, 1.0f);
@@ -61,11 +57,10 @@ public class Game {
     private ParticleSystemRenderer particleSystemRendererSmoke;
     private boolean shipCrashed;
     private boolean shipLanded;
-    private float safeZoneWidth = 0.1f;
     private Level level = Level.LEVEL_1;
     private HashSet<Integer> safeZoneIdxs = new HashSet<>();
-    private TimerRenderer timerRenderer = new TimerRenderer(3);
-    private TimerRenderer endGameRnderer = new TimerRenderer(1);
+    private final TimerRenderer timerRenderer = new TimerRenderer(3);
+    private final TimerRenderer endGameRnderer = new TimerRenderer(1);
     private boolean startNewLevel;
     private boolean scoreAdded;
     private boolean finalScoreAdded;
@@ -156,7 +151,7 @@ public class Game {
 
     private boolean terrainIsGood(){
         for (Vector2f v : terrain){
-            if (v.y > 0.5f | v.y < -0.5f){
+            if (v.y > 0.4f | v.y < -0.5f){
                 return false;
             }
         }
@@ -178,7 +173,7 @@ public class Game {
                 Random rand = new Random();
                 int midIdx = this.terrain.size() / 2;
                 int safeZoneIdx1 = rand.nextInt(5, midIdx - 20);
-                int safeZoneIdx2 = rand.nextInt(midIdx, this.terrain.size() - 50);
+                int safeZoneIdx2 = rand.nextInt(midIdx, this.terrain.size() - 20);
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, LEVEL1_WIDTH));
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, LEVEL1_WIDTH));
             }
@@ -188,7 +183,7 @@ public class Game {
                     terrainIsGood = terrainIsGood();
                 }
                 Random rand = new Random();
-                int safeZoneIdx1 = rand.nextInt(50, this.terrain.size() - 50);
+                int safeZoneIdx1 = rand.nextInt(5, this.terrain.size() - 20);
                 this.safeZoneIdxs = new HashSet<>();
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx1, LEVEL2_WIDTH));
             }
@@ -374,7 +369,7 @@ public class Game {
             case ENDGAME -> {
                 level = Level.LEVEL_1;
                 if (!finalScoreAdded){
-                    scoreList.add(String.format("%.0f", score) + "\n");
+                    scoreList.add((int) score);
                     finalScoreAdded = true;
                 }
             }
@@ -572,15 +567,31 @@ public class Game {
                 drawText("Game made by Isaac Peterson.");
             }
             case HIGHSCORES -> {
+                scoreList.sort(Collections.reverseOrder());
                 StringBuilder highscores = new StringBuilder();
                 highscores.append("High Scores \n");
-                for (String s: scoreList){
-                    highscores.append(s);
+                for (Integer s: scoreList){
+                    highscores.append(s).append("\n");
                 }
                 drawText(highscores.toString());
             }
             case ENDGAME -> {
-                drawText("Game Over\n Your Score: " + String.format("%.0f", score) + "\n" + "Press Esc to Return to Menu\n");
+                Integer maxScore = 0;
+                for (Integer s: scoreList){
+                    if (s > maxScore){
+                        maxScore = s;
+                    }
+                }
+                boolean isHighScore = (score >= maxScore);
+
+                if (isHighScore){
+                    drawText("Game Over, New High Score! \n Your Score: " + String.format("%.0f", score) + "\n" + "Press Esc to Return to Menu\n");
+                }
+                else{
+                    drawText("Game Over\n Your Score: " + String.format("%.0f", score) + "\n" + "Press Esc to Return to Menu\n");
+                }
+
+
             }
         }
         graphics.end();
