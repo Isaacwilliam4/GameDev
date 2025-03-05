@@ -424,10 +424,17 @@ public class Game {
             Vector2f pt2 = terrain.get(i + 1);
 
             float dist = pt1.distance(pt2);
-            float angle = (float) Math.atan2(pt2.y - pt1.y, pt2.x - pt1.x); // Get angle between points
 
-            Rectangle r = new Rectangle(pt1.x, pt1.y, 0.01f, dist); // Increased height for visibility
-            graphics.draw(r, (float) Math.toDegrees(angle), new Vector2f(pt1.x, pt1.y), Color.WHITE); // Rotate around pt1
+            float angle = (float) Math.atan2(pt2.y - pt1.y, pt2.x - pt1.x); // Get angle between points
+//            float angle = (float) 0; // Get angle between points
+
+            Color color = Color.WHITE;
+            if (safeZoneIdxs.contains(i) & safeZoneIdxs.contains(i + 1)){
+                color = Color.GREEN;
+            }
+
+            Rectangle r = new Rectangle(pt1.x, pt1.y, 0.003f, dist + 0.002f); // Increased height for visibility
+            graphics.draw(r, angle - (float)(Math.PI / 2), pt1, color); // Rotate around pt1
         }
 
     }
@@ -479,6 +486,7 @@ public class Game {
 
     private void render(long window, double elapsedTime) {
         graphics.begin();
+
         if (!ship.isThrustActive() | shipCrashed | shipLanded){
             if (shipThrust.isPlaying()){
                 shipThrust.stop();
