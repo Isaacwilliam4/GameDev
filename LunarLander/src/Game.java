@@ -1,10 +1,8 @@
 import Enums.*;
+import Models.HighScores;
 import Models.ParticleSystem;
 import Models.Ship;
-import Util.GameUtils;
-import Util.KeyboardInput;
-import Util.ParticleSystemRenderer;
-import Util.TimerRenderer;
+import Util.*;
 import edu.usu.audio.Sound;
 import edu.usu.audio.SoundManager;
 import edu.usu.graphics.*;
@@ -30,7 +28,7 @@ public class Game {
     private final KeyboardInput inputKeyboard;
     private double timePassed = 0;
     private float score = 0;
-    private List<Integer> scoreList = new ArrayList<>();
+    private HighScores highScores;
     private GameState gameState = GameState.MENU;
     private GameState pendingGameState = GameState.MENU;
     private float LEVEL1_WIDTH = 0.15f;
@@ -70,6 +68,7 @@ public class Game {
     private Sound crash;
     private boolean victorySoundPlayed;
     private boolean explosionSoundPlayed;
+    private Serializer serializer;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -77,7 +76,11 @@ public class Game {
     }
 
     public void initialize() {
+        this.highScores = new HighScores();
+        serializer = new Serializer();
         audio = new SoundManager();
+
+        serializer.loadHighScores(this.highScores);
         shipThrust = audio.load("thrust", "resources/sounds/thrust.ogg", true);
         safeLanding = audio.load("safeLanding", "resources/sounds/finished.ogg", false);
         crash = audio.load("explosion", "resources/sounds/explosion.ogg", false);
@@ -178,6 +181,7 @@ public class Game {
                 this.safeZoneIdxs.addAll(GameUtils.addSafeZone(this.terrain, safeZoneIdx2, LEVEL1_WIDTH));
             }
             case LEVEL_2 -> {
+                this.ship.setFuel(15);
                 while (!terrainIsGood){
                     this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.3f);
                     terrainIsGood = terrainIsGood();
@@ -203,8 +207,8 @@ public class Game {
                             resetGame();
                         }
                         case HIGHSCORES -> pendingGameState = GameState.HIGHSCORES;
-                        case CUSTOMIZECONTROLS -> pendingGameState = GameState.CUSTOMIZECONTROLS;
                         case CREDITS -> pendingGameState = GameState.CREDITS;
+                        case QUIT -> System.exit(0);
                     }
                 });
                 inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> menuSelect = menuSelect.previous());
@@ -369,8 +373,9 @@ public class Game {
             case ENDGAME -> {
                 level = Level.LEVEL_1;
                 if (!finalScoreAdded){
-                    scoreList.add((int) score);
+                    this.highScores.addToHighscores((int) score);
                     finalScoreAdded = true;
+                    serializer.saveHighScores(this.highScores);
                 }
             }
         }
@@ -523,6 +528,7 @@ public class Game {
                             View High Scores
                             Customize Controls
                             View Credits
+                            Quit
                         """;
                 drawSelect(menuText, menuSelect);
             }
@@ -567,17 +573,16 @@ public class Game {
                 drawText("Game made by Isaac Peterson.");
             }
             case HIGHSCORES -> {
-                scoreList.sort(Collections.reverseOrder());
                 StringBuilder highscores = new StringBuilder();
                 highscores.append("High Scores \n");
-                for (Integer s: scoreList){
+                for (Integer s: this.highScores.getHighScores()){
                     highscores.append(s).append("\n");
                 }
                 drawText(highscores.toString());
             }
             case ENDGAME -> {
                 Integer maxScore = 0;
-                for (Integer s: scoreList){
+                for (Integer s: this.highScores.getHighScores()){
                     if (s > maxScore){
                         maxScore = s;
                     }

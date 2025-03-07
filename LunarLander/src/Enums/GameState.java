@@ -6,8 +6,7 @@ public enum GameState {
     GAMEPAUSED,
     ENDGAME,
     CREDITS,
-    HIGHSCORES,
-    CUSTOMIZECONTROLS,;
+    HIGHSCORES;
 
     public GameState next() {
         GameState[] values = GameState.values();

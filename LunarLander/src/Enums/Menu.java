@@ -3,8 +3,8 @@ package Enums;
 public enum Menu {
     PLAYGAME,
     HIGHSCORES,
-    CUSTOMIZECONTROLS,
     CREDITS,
+    QUIT,
     NONE;
 
     public Menu next() {

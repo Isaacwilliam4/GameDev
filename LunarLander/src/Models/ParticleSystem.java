@@ -107,7 +107,7 @@ public class ParticleSystem {
         var p = new Particle(
                 new Vector2f(this.center.x, this.center.y),
                 directionNoisy,
-                (float) this.random.nextGaussian(this.speedMean, this.speedStdDev),
+                (float) Math.abs(this.random.nextGaussian(this.speedMean, this.speedStdDev)),
                 new Vector2f(size, size),
                 this.random.nextGaussian(this.lifetimeMean, this.lifetimeStdDev));
 
