@@ -27,7 +27,7 @@ public class Game {
     private final Color TEXT_COLOR = Color.WHITE;
     private final KeyboardInput inputKeyboard;
     private double timePassed = 0;
-    private float score = 0;
+    private int score = 0;
     private HighScores highScores;
     private GameState gameState = GameState.MENU;
     private GameState pendingGameState = GameState.MENU;
@@ -183,7 +183,7 @@ public class Game {
             case LEVEL_2 -> {
                 this.ship.setFuel(15);
                 while (!terrainIsGood){
-                    this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.3f);
+                    this.terrain = GameUtils.splitTerrain(terrain,  0.02f, 0.5f);
                     terrainIsGood = terrainIsGood();
                 }
                 Random rand = new Random();
@@ -233,7 +233,7 @@ public class Game {
                 inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> pauseSelect = pauseSelect.previous());
                 inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> pauseSelect = pauseSelect.next());
             }
-            case HIGHSCORES, CUSTOMIZECONTROLS, CREDITS, ENDGAME -> {
+            case HIGHSCORES, CREDITS, ENDGAME -> {
                 inputKeyboard.registerCommand(GLFW_KEY_ESCAPE, true, (double elapsedTime) -> pendingGameState = GameState.MENU);
             }
         }
@@ -361,6 +361,10 @@ public class Game {
                         endGameRnderer.update(elapsedTime);
                         if (endGameRnderer.isDone()){
                             pendingGameState = GameState.ENDGAME;
+                        }
+                        if (!scoreAdded){
+                            score += (float)(timePassed);
+                            scoreAdded = true;
                         }
                         particleSystemFireExplosion.setCenter(ship.getPosition());
                         particleSystemSmokeExplosion.setCenter(ship.getPosition());
@@ -526,7 +530,6 @@ public class Game {
                         """
                             Start a New Game
                             View High Scores
-                            Customize Controls
                             View Credits
                             Quit
                         """;
@@ -574,11 +577,19 @@ public class Game {
             }
             case HIGHSCORES -> {
                 StringBuilder highscores = new StringBuilder();
+                List<Color> colors = new ArrayList<>();
+                colors.add(Color.WHITE);
                 highscores.append("High Scores \n");
                 for (Integer s: this.highScores.getHighScores()){
                     highscores.append(s).append("\n");
+                    if (s == (int) this.score){
+                        colors.add(Color.GREEN);
+                    }
+                    else {
+                        colors.add(Color.WHITE);
+                    }
                 }
-                drawText(highscores.toString());
+                drawTextWithLeftTopAndColor(highscores.toString(), MENU_LEFT, MENU_TOP, TEXT_HEIGHT,colors);
             }
             case ENDGAME -> {
                 Integer maxScore = 0;
@@ -587,13 +598,13 @@ public class Game {
                         maxScore = s;
                     }
                 }
-                boolean isHighScore = (score >= maxScore);
+                boolean isHighScore = ((int) score == maxScore);
 
                 if (isHighScore){
-                    drawText("Game Over, New High Score! \n Your Score: " + String.format("%.0f", score) + "\n" + "Press Esc to Return to Menu\n");
+                    drawText("Game Over, New High Score! \n Your Score: " + (int) score + "\n" + "Press Esc to Return to Menu\n");
                 }
                 else{
-                    drawText("Game Over\n Your Score: " + String.format("%.0f", score) + "\n" + "Press Esc to Return to Menu\n");
+                    drawText("Game Over\n Your Score: " + (int) score + "\n" + "Press Esc to Return to Menu\n");
                 }
 
 

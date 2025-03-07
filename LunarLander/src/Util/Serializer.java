@@ -109,7 +109,7 @@ public class Serializer implements Runnable {
         var highscoreSet = new HashSet<>(highScores.getHighScores());
         this.highScores.setHighScores(new ArrayList<>(highscoreSet));
         this.highScores.getHighScores().sort(Collections.reverseOrder());
-        this.highScores.setHighScores(highScores.getHighScores().subList(0, Math.min(5, this.highScores.getHighScores().size())));
+        this.highScores.setHighScores(highScores.getHighScores().subList(0, Math.min(10, this.highScores.getHighScores().size())));
 
         try (FileWriter writer = new FileWriter("highscores.json")) {
             Gson gson = new Gson();
@@ -125,6 +125,7 @@ public class Serializer implements Runnable {
         System.out.println("loading something...");
         File file = new File("highscores.json");
         if (!file.exists()) {
+            this.highScores.setHighScores(new ArrayList<>());
             return;
         }
         try (FileReader reader = new FileReader("highscores.json")) {
