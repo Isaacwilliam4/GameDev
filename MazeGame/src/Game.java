@@ -175,7 +175,7 @@ public class Game {
 
         inputKeyboard.registerCommand(GLFW_KEY_F4, true, (double elapsedTime) -> {
             gameState = GameState.PLAYGAME;
-            mazeSize = 20;
+            mazeSize = 50;
             startGame();
         });
 
