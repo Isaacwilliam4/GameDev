@@ -34,7 +34,7 @@ public class KeyboardInput extends System {
                 movable.rotation = -movable.rotationSpeed;
             }
             if (glfwGetKey(window, input.lookup.get(Movable.Move.ROTATE_RIGHT)) == GLFW_PRESS) {
-                movable.rotation = +movable.rotationSpeed;
+                movable.rotation = movable.rotationSpeed;
             }
         }
     }

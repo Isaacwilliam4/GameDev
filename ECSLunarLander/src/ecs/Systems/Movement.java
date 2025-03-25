@@ -23,7 +23,7 @@ public class Movement extends System {
 
     private void moveEntity(ecs.Entities.Entity entity, double elapsedTime) {
         var movable = entity.get(ecs.Components.Movable.class);
-        movable.elapsedInterval += elapsedTime;
+//        movable.elapsedInterval += elapsedTime;
         move(entity, movable.velocity.x, movable.velocity.y, movable.rotation);
 
     }

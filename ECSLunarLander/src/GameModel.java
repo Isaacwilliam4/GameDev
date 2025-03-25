@@ -14,7 +14,7 @@ public class GameModel {
 
     private final List<Entity> removeThese = new ArrayList<>();
     private final List<Entity> addThese = new ArrayList<>();
-    private Entity snake;
+    private Entity ship;
 
     private ecs.Systems.Renderer sysRenderer;
     private ecs.Systems.Collision sysCollision;
@@ -24,6 +24,8 @@ public class GameModel {
 
     public void initialize(Graphics2D graphics) {
         var texSquare = new Texture("resources/images/square-outline.png");
+        var lunarLander = new Texture("resources/images/lunarLander.png");
+
 
         sysRenderer = new Renderer(graphics, GRID_SIZE);
         sysCollision = new Collision((Entity entity) -> {
@@ -38,15 +40,13 @@ public class GameModel {
                 graphics,
                 (Entity entity) -> {
                     removeEntity(entity);
-                    ecs.Entities.Snake.enableControls(snake);
-                    var movable = snake.get(ecs.Components.Movable.class);
-                    movable.facing = Movable.Direction.Up;
-                    addEntity(snake);
+                    ecs.Entities.Snake.enableControls(ship);
+                    addEntity(ship);
                 });
 
         initializeBorder(texSquare);
         initializeObstacles(texSquare);
-        initializeSnake(texSquare);
+        initializeShip(lunarLander);
         addEntity(createFood(texSquare));
 
         var countdown = ecs.Entities.Countdown.create(3);
@@ -123,17 +123,17 @@ public class GameModel {
         }
     }
 
-    private void initializeSnake(Texture square) {
-        MyRandom rnd = new MyRandom();
+    private void initializeShip(Texture lunarLander) {
+//        MyRandom rnd = new MyRandom();
         boolean done = false;
 
         while (!done) {
-            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            int y = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            var proposed = Snake.create(square, x, y);
+//            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
+//            int y = (int) rnd.nextRange(1, GRID_SIZE - 1);
+            var proposed = Ship.create(lunarLander, 0, -.1f, 0);
             if (!sysCollision.collidesWithAny(proposed)) {
                 addEntity(proposed);
-                snake = proposed;
+                ship = proposed;
                 done = true;
             }
         }
