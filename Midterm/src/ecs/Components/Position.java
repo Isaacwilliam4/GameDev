@@ -6,17 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Position extends Component {
-    public List<Vector2i> segments = new ArrayList<>();
+    public List<Vector2i> previousPositions = new ArrayList<Vector2i>();
+    public Vector2i position;
 
     public Position(int x, int y) {
-        segments.add(new Vector2i(x, y));
+        this.position = new Vector2i(x, y);
+    }
+
+    public void undoMove(){
+        this.position = previousPositions.getLast();
     }
 
     public int getX() {
-        return segments.get(0).x;
+        return position.x;
     }
 
     public int getY() {
-        return segments.get(0).y;
+        return position.y;
     }
 }

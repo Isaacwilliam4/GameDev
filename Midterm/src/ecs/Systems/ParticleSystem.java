@@ -11,20 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParticleSystem extends System {
-    private Texture texParticle;
 
     public ParticleSystem() {
         super(ParticleSystemComponent.class);
-    }
-
-    public void initialize(String filenameTexture) {
-        texParticle = new Texture(filenameTexture);
-    }
-
-    public void cleanup() {
-        if (texParticle != null) {
-            texParticle.cleanup();
-        }
     }
 
     @Override
@@ -54,6 +43,7 @@ public class ParticleSystem extends System {
                     systemComponent.particles.put(particle.name, particle);
                 }
             }
+            render(systemComponent.graphics);
         }
     }
 
@@ -90,7 +80,7 @@ public class ParticleSystem extends System {
         for (var entity : entities.values()) {
             var systemComponent = entity.get(ParticleSystemComponent.class);
             for (var particle : systemComponent.particles.values()) {
-                graphics.draw(texParticle, particle.area, particle.rotation, particle.center, Color.WHITE);
+                graphics.draw(systemComponent.texture, particle.area, particle.rotation, particle.center, Color.WHITE);
             }
         }
     }

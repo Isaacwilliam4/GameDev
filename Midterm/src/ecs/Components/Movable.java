@@ -10,13 +10,11 @@ public class Movable extends Component {
         Right
     }
 
-    public Direction facing;
-    public int segmentsToAdd = 0;
     public double moveInterval; // seconds
-    public double elapsedInterval;
+    public Direction pendingMove;
 
-    public Movable(Direction facing, double moveInterval) {
-        this.facing = facing;
-        this.moveInterval =moveInterval;
+    public Movable(double moveInterval) {
+        this.moveInterval = moveInterval;
+        this.pendingMove = Direction.Stopped;
     }
 }

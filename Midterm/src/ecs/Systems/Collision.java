@@ -1,6 +1,7 @@
 package ecs.Systems;
 
 import ecs.Components.Movable;
+import ecs.Components.Position;
 import ecs.Entities.Entity;
 
 import java.util.ArrayList;
@@ -35,13 +36,7 @@ public class Collision extends System {
         for (var entity : entities.values()) {
             for (var entityMovable : movable) {
                 if (collides(entity, entityMovable)) {
-                    // If food, that's okay
-                    if (entity.contains(ecs.Components.Food.class)) {
-                        entityMovable.get(Movable.class).segmentsToAdd = 3;
-                        foodConsumed.invoke(entity);
-                    } else {
-                        entityMovable.get(ecs.Components.Movable.class).facing = ecs.Components.Movable.Direction.Stopped;
-                    }
+                    entityMovable.get(Position.class).undoMove();
                 }
             }
         }
@@ -58,10 +53,8 @@ public class Collision extends System {
             if (entity.contains(ecs.Components.Collision.class) && entity.contains(ecs.Components.Position.class)) {
                 var ePosition = entity.get(ecs.Components.Position.class);
 
-                for (var segment : ePosition.segments) {
-                    if (aPosition.getX() == segment.x && aPosition.getY() == segment.y) {
-                        return true;
-                    }
+                if (aPosition.getX() == ePosition.getX() && aPosition.getY() == ePosition.getY()) {
+                    return true;
                 }
             }
         }
@@ -91,22 +84,14 @@ public class Collision extends System {
      * exception of the movable itself...a movable can collide with itself.
      */
     private boolean collides(Entity a, Entity b) {
-        var aPosition = a.get(ecs.Components.Position.class);
-        var bPosition = b.get(ecs.Components.Position.class);
 
-        // A movable can collide with itself: Check segment against the rest
-        if (a == b) {
-            // Have to skip the first segment, that's why using a counted for loop
-            for (int segment = 1; segment < aPosition.segments.size(); segment++) {
-                if (aPosition.getX() == aPosition.segments.get(segment).x && aPosition.getY() == aPosition.segments.get(segment).y) {
-                    return true;
-                }
-            }
+        if (a.contains(ecs.Components.Collision.class) && b.contains(ecs.Components.Collision.class) && !a.equals(b)) {
+            var aPosition = a.get(ecs.Components.Position.class);
+            var bPosition = b.get(ecs.Components.Position.class);
 
-            return false;
+            return aPosition.getX() == bPosition.getX() && aPosition.getY() == bPosition.getY();
         }
-
-        return aPosition.getX() == bPosition.getX() && aPosition.getY() == bPosition.getY();
+        return false;
     }
 
 }

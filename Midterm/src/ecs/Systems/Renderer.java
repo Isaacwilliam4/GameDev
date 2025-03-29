@@ -3,6 +3,7 @@ package ecs.Systems;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Rectangle;
+import org.joml.Vector2f;
 
 public class Renderer extends System {
 
@@ -41,19 +42,17 @@ public class Renderer extends System {
         var appearance = entity.get(ecs.Components.Appearance.class);
         var position = entity.get(ecs.Components.Position.class);
 
-        for (int segment = 0; segment < position.segments.size(); segment++) {
-            Rectangle area = new Rectangle(0, 0, 0, 0);
-            area.left = -0.5f + OFFSET_X + position.segments.get(segment).x * CELL_SIZE;
-            area.top = -0.5f + OFFSET_Y + position.segments.get(segment).y * CELL_SIZE;
-            area.width = CELL_SIZE;
-            area.height = CELL_SIZE;
+        float frameWidth = appearance.image.getWidth();
+        float frameHeight = appearance.image.getHeight();
 
-            float fraction = Math.min(segment / 30.0f, 1.0f);
-            var color = new Color(
-                    org.joml.Math.lerp(appearance.color.r, 0, fraction),
-                    org.joml.Math.lerp(appearance.color.g, 0, fraction),
-                    org.joml.Math.lerp(appearance.color.b, 1, fraction));
-            graphics.draw(appearance.image, area, color);
-        }
+        Rectangle area = new Rectangle(0, 0, 0, 0);
+        area.left = -0.5f + OFFSET_X + position.getX() * CELL_SIZE;
+        area.top = -0.5f + OFFSET_Y + position.getY() * CELL_SIZE;
+        area.width = CELL_SIZE;
+        area.height = CELL_SIZE;
+
+        Rectangle subImage = new Rectangle(frameWidth, 0, frameWidth, frameHeight);
+
+        graphics.draw(appearance.image, area, subImage, 0.0f, new Vector2f(0,0), Color.WHITE);
     }
 }

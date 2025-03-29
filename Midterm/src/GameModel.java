@@ -1,9 +1,11 @@
 import ecs.Components.Movable;
+import ecs.Components.ParticleSystemComponent;
 import ecs.Entities.*;
 import ecs.Systems.*;
 import ecs.Systems.Countdown;
 import ecs.Systems.KeyboardInput;
 import edu.usu.graphics.*;
+import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +23,11 @@ public class GameModel {
     private ecs.Systems.Movement sysMovement;
     private ecs.Systems.KeyboardInput sysKeyboardInput;
     private ecs.Systems.Countdown sysCountdown;
+    private ecs.Systems.ParticleSystem sysParticleSystem;
+    private Graphics2D graphics;
 
     public void initialize(Graphics2D graphics) {
+        this.graphics = graphics;
         var texSquare = new Texture("resources/images/square-outline.png");
 
         sysRenderer = new Renderer(graphics, GRID_SIZE);
@@ -34,6 +39,7 @@ public class GameModel {
         });
         sysMovement = new Movement();
         sysKeyboardInput = new KeyboardInput(graphics.getWindow());
+        sysParticleSystem = new ParticleSystem();
 //        sysCountdown = new Countdown(
 //                graphics,
 //                (Entity entity) -> {
@@ -59,7 +65,7 @@ public class GameModel {
         // Now do the normal update
         sysMovement.update(elapsedTime);
         sysCollision.update(elapsedTime);
-
+        sysParticleSystem.update(elapsedTime);
         for (var entity : removeThese) {
             removeEntity(entity);
         }
@@ -124,11 +130,15 @@ public class GameModel {
     }
 
     private void initializeSnake(Texture square) {
+
         MyRandom rnd = new MyRandom();
         boolean done = false;
-        snake = Snake.create(square, 25, 25);
+        snake = Snake.create(square, 25, 25, graphics);
         ecs.Entities.Snake.enableControls(snake);
         addEntity(snake);
+
+        sysParticleSystem.add(snake);
+
 
 //        while (!done) {
 //            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
