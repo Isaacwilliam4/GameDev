@@ -91,7 +91,7 @@ public class GameModel {
 
         MyRandom rnd = new MyRandom();
         boolean done = false;
-        player = Player.create(0,0);
+        player = Player.create(0,.3f);
         Player.enableControls(player);
         addEntity(player);
 
