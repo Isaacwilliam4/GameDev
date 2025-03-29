@@ -26,7 +26,7 @@ public class Snake {
         snake.add(new ParticleSystemComponent(
                 graphics,
                 tex,
-                new Vector2f(25, 25),  // Center at character position
+                new Vector2f(0, 0),  // Center at character position
                 new Vector2f(0, 1),   // Direction (can be adjusted for effects)
                 0.05f, 0.02f,         // Size Mean & StdDev
                 0.1f, 0.05f,          // Speed Mean & StdDev

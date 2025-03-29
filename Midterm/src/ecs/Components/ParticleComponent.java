@@ -22,7 +22,7 @@ public class ParticleComponent extends Component {
         this.direction = direction;
         this.speed = speed;
         this.size = size;
-        this.area = new Rectangle(center.x - size.x / 2, center.y - size.y / 2, size.x, size.y);
+        this.area = new Rectangle(center.x - size.x / 2, center.y - size.y / 2, size.x, size.y, 1);
         this.lifetime = lifetime;
         this.rotation = 0;
     }

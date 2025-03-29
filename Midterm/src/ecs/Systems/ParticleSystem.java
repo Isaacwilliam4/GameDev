@@ -36,13 +36,13 @@ public class ParticleSystem extends System {
             }
 
             // Generate new particles
-            systemComponent.timeToCreate -= elapsedTime;
-            if (systemComponent.timeToCreate > 0) {
-                for (int i = 0; i < 8; i++) {
-                    var particle = createParticle(systemComponent);
-                    systemComponent.particles.put(particle.name, particle);
-                }
+//            systemComponent.timeToCreate -= elapsedTime;
+//            if (systemComponent.timeToCreate > 0) {
+            for (int i = 0; i < 8; i++) {
+                var particle = createParticle(systemComponent);
+                systemComponent.particles.put(particle.name, particle);
             }
+//            }
             render(systemComponent.graphics);
         }
     }
