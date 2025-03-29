@@ -9,6 +9,13 @@ import org.joml.Vector2f;
 public class Renderer extends System {
 
     private final Graphics2D graphics;
+    private final double ROAD_BG_INTERVAL = 0.1;
+    private final float ROAD_BG_INTERVAL_MVM = 0.1f;
+    private final int ROAD_BG_INTERVAL_NUM = 3;
+    private final float BG_TOP_RESET = -1.75f;
+    private int roadBgNumVal = 0;
+    private double curr_bg_interval = 0.0;
+    private float bg_top = -1.75f;
 
     public Renderer(Graphics2D graphics) {
         super(ecs.Components.Appearance.class,
@@ -20,8 +27,19 @@ public class Renderer extends System {
     @Override
     public void update(double elapsedTime) {
 
+        curr_bg_interval += elapsedTime;
+        if (curr_bg_interval > ROAD_BG_INTERVAL) {
+            curr_bg_interval = 0.0;
+            roadBgNumVal += 1;
+            if (roadBgNumVal > ROAD_BG_INTERVAL_NUM) {
+                roadBgNumVal = 0;
+                bg_top = BG_TOP_RESET;
+            }
+            bg_top = bg_top - ROAD_BG_INTERVAL_MVM * bg_top;
+        }
+
         // Draw a blue background for the gameplay area
-        Rectangle area = new Rectangle(-1f, -1f, 2f, 2f);
+        Rectangle area = new Rectangle(-1f, bg_top, 2f, 2.5f);
         Texture bgTex = new Texture("resources/images/road.png");
         graphics.draw(bgTex, area, Color.WHITE);
 
