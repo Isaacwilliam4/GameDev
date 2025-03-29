@@ -54,5 +54,14 @@ public class Renderer extends System {
         Rectangle subImage = new Rectangle(frameWidth, 0, frameWidth, frameHeight);
 
         graphics.draw(appearance.image, area, subImage, 0.0f, new Vector2f(0,0), Color.WHITE);
+
+        if (entity.contains(ecs.Components.ParticleSystemComponent.class)) {
+            var particleSystem = entity.get(ecs.Components.ParticleSystemComponent.class);
+            area.top = -0.5f + OFFSET_Y + position.getY() * CELL_SIZE;
+
+            for (var particle : particleSystem.particles.values()) {
+                graphics.draw(particleSystem.texture, particle.area, particle.rotation, particle.center, Color.WHITE);
+            }
+        }
     }
 }

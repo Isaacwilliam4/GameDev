@@ -43,7 +43,7 @@ public class ParticleSystem extends System {
                 systemComponent.particles.put(particle.name, particle);
             }
 //            }
-            render(systemComponent.graphics);
+//            render(systemComponent.graphics);
         }
     }
 

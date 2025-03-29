@@ -47,8 +47,8 @@ public class Movement extends System {
 
         if (entity.contains(ecs.Components.ParticleSystemComponent.class)){
             var particleSystemComponent = entity.get(ecs.Components.ParticleSystemComponent.class);
-            particleSystemComponent.center.x += xIncrement;
-            particleSystemComponent.center.y += yIncrement;
+            particleSystemComponent.center.x = positionComponent.getX();
+            particleSystemComponent.center.y = positionComponent.getY();
         }
     }
 }
