@@ -12,18 +12,34 @@ import java.util.Map;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class Player {
-    public static Entity create(float x, float y) {
+    public static Entity create(float x, float y, Graphics2D graphics) {
         final float MOVE_INTERVAL = (float) 0.015;
 
         var player = new Entity();
 
-        player.add(new ecs.Components.Position(x, y, 0));
+
+        var position = new ecs.Components.Position(x, y, 0)
+        player.add(position);
         player.add(new ecs.Components.Collision());
         player.add(new ecs.Components.Movable(MOVE_INTERVAL, Movable.Direction.Stopped));
         Texture tex = new Texture("resources/images/player.png");
+        Texture particleTex = new Texture("resources/images/particle.png");
         player.add(new ecs.Components.Appearance(tex, Color.WHITE, .15f, .15f));
-
-
+        player.add(new ecs.Components.ParticleSystemComponent(
+                graphics,
+                particleTex,
+                position.position,
+                new Vector2f(0f,1f),
+                0.001f,
+                0.001f,
+                0.3f,
+                0.1f,
+                1,
+                5,
+                3,
+                0.1,
+                1
+        ));
 
         return player;
     }

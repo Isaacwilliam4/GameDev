@@ -5,4 +5,5 @@ package ecs.Components;
  * associated with this component.
  */
 public class Collision extends Component {
+    public boolean isCollided = false;
 }

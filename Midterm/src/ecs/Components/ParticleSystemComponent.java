@@ -21,6 +21,8 @@ public class ParticleSystemComponent extends Component {
     public final float lifetimeStdDev;
     public final float angleStdDev;
     public double timeToCreate;
+    public double totalLifeTime;
+    public double currentLifeTime = 0;
 
     public ParticleSystemComponent(Graphics2D graphics,
                                    Texture texture,
@@ -33,7 +35,8 @@ public class ParticleSystemComponent extends Component {
                                    float lifetimeMean,
                                    float lifetimeStdDev,
                                    float angleStdDev,
-                                   double timeToCreate) {
+                                   double timeToCreate,
+                                   double totalLifeTime) {
         this.graphics = graphics;
         this.texture = texture;
         this.center = center;
@@ -46,5 +49,6 @@ public class ParticleSystemComponent extends Component {
         this.lifetimeStdDev = lifetimeStdDev;
         this.angleStdDev = angleStdDev;
         this.timeToCreate = timeToCreate;
+        this.totalLifeTime = totalLifeTime;
     }
 }

@@ -64,6 +64,10 @@ public class GameModel {
             sysRenderer.add(value);
         }
 
+        for (Entity value: sysCarSystem.getCars().values()){
+            sysCollision.add(value);
+        }
+
         removeThese.addAll(sysCarSystem.getEntitiesToRemove());
         sysCarSystem.clearEntitiesToRemove();
 
@@ -104,7 +108,7 @@ public class GameModel {
 
         MyRandom rnd = new MyRandom();
         boolean done = false;
-        player = Player.create(0,.3f);
+        player = Player.create(0,.3f, graphics);
         Player.enableControls(player);
         addEntity(player);
 
