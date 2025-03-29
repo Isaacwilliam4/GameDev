@@ -10,8 +10,8 @@ public class ParticleEntity {
     public static Entity create(Texture texture, Vector2f position, Vector2f direction, float speed, Vector2f size, double lifetime) {
         var particle = new Entity();
 
-        particle.add(new ecs.Components.Appearance(texture, Color.WHITE)); // Default white color
-        particle.add(new Position(position.x, position.y, size.x, size.y)); // Convert float position to integer grid coordinates
+        particle.add(new ecs.Components.Appearance(texture, Color.WHITE,  size.x, size.y)); // Default white color
+        particle.add(new Position(position.x, position.y)); // Convert float position to integer grid coordinates
         particle.add(new ParticleComponent(position, direction, speed, size, lifetime)); // Add particle-specific behavior
 
         return particle;

@@ -17,6 +17,7 @@ public class GameModel {
     private ecs.Systems.KeyboardInput sysKeyboardInput;
     private ecs.Systems.Countdown sysCountdown;
     private ecs.Systems.ParticleSystem sysParticleSystem;
+    private ecs.Systems.CarSystem sysCarSystem;
     private Graphics2D graphics;
 
     public void initialize(Graphics2D graphics) {
@@ -30,6 +31,7 @@ public class GameModel {
         sysMovement = new Movement();
         sysKeyboardInput = new KeyboardInput(graphics.getWindow());
         sysParticleSystem = new ParticleSystem();
+        sysCarSystem = new CarSystem();
 //        sysCountdown = new Countdown(
 //                graphics,
 //                (Entity entity) -> {
@@ -56,6 +58,12 @@ public class GameModel {
         sysMovement.update(elapsedTime);
         sysCollision.update(elapsedTime);
         sysParticleSystem.update(elapsedTime);
+        sysCarSystem.update(elapsedTime);
+
+        for (Entity value: sysCarSystem.getCars().values()){
+            sysRenderer.add(value);
+        }
+
         for (var entity : removeThese) {
             removeEntity(entity);
         }

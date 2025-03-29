@@ -12,7 +12,7 @@ public class Position extends Component {
     public float width;
     public float height;
 
-    public Position(float x, float y, float width, float height) {
+    public Position(float x, float y) {
         this.position = new Vector2f(x, y);
         this.width = width;
         this.height = height;

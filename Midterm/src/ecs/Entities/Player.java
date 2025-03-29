@@ -16,11 +16,11 @@ public class Player {
 
         var player = new Entity();
 
-        player.add(new ecs.Components.Position(x, y, .15f, .15f));
+        player.add(new ecs.Components.Position(x, y));
         player.add(new ecs.Components.Collision());
         player.add(new ecs.Components.Movable(MOVE_INTERVAL));
         Texture tex = new Texture("resources/images/player.png");
-        player.add(new ecs.Components.Appearance(tex, Color.WHITE));
+        player.add(new ecs.Components.Appearance(tex, Color.WHITE, .15f, .15f));
 
 
 
