@@ -10,11 +10,11 @@ public class Movable extends Component {
         Right
     }
 
-    public double moveInterval; // seconds
+    public float moveDist;
     public Direction pendingMove;
 
-    public Movable(double moveInterval) {
-        this.moveInterval = moveInterval;
+    public Movable(float moveDist) {
+        this.moveDist = moveDist;
         this.pendingMove = Direction.Stopped;
     }
 }

@@ -37,9 +37,7 @@ public class KeyboardInput extends System {
                         boolean isPressed = glfwGetKey(window, key) == GLFW_PRESS;
                         boolean wasPressed = keyStates.getOrDefault(key, false);
 
-                        if (isPressed && !wasPressed) {
-                            movable.pendingMove = input.keys.get(key);
-                        }
+                        movable.pendingMove = input.keys.get(key);
 
                         keyStates.put(key, isPressed);
                     }

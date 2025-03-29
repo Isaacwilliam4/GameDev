@@ -11,7 +11,7 @@ public class ParticleEntity {
         var particle = new Entity();
 
         particle.add(new ecs.Components.Appearance(texture, Color.WHITE)); // Default white color
-        particle.add(new Position((int) position.x, (int) position.y)); // Convert float position to integer grid coordinates
+        particle.add(new Position(position.x, position.y, size.x, size.y)); // Convert float position to integer grid coordinates
         particle.add(new ParticleComponent(position, direction, speed, size, lifetime)); // Add particle-specific behavior
 
         return particle;

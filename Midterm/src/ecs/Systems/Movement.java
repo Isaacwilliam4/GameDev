@@ -1,6 +1,7 @@
 package ecs.Systems;
 
 import ecs.Components.Movable;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 
 /**
@@ -24,26 +25,26 @@ public class Movement extends System {
 
         switch (movable.pendingMove) {
             case Movable.Direction.Up:
-                move(entity, 0, -1);
+                move(entity, 0, -movable.moveDist);
                 break;
             case Movable.Direction.Down:
-                move(entity, 0, 1);
+                move(entity, 0, movable.moveDist);
                 break;
             case Movable.Direction.Left:
-                move(entity, -1, 0);
+                move(entity, -movable.moveDist, 0);
                 break;
             case Movable.Direction.Right:
-                move(entity, 1, 0);
+                move(entity, movable.moveDist, 0);
                 break;
         }
         movable.pendingMove = Movable.Direction.Stopped;
     }
 
-    private void move(ecs.Entities.Entity entity, int xIncrement, int yIncrement) {
+    private void move(ecs.Entities.Entity entity, float xIncrement, float yIncrement) {
         var positionComponent = entity.get(ecs.Components.Position.class);
         var position = positionComponent.position;
         positionComponent.previousPositions.add(position);
-        positionComponent.position = new Vector2i(position.x + xIncrement, position.y + yIncrement);
+        positionComponent.position = new Vector2f(position.x + xIncrement, position.y + yIncrement);
 
         if (entity.contains(ecs.Components.ParticleSystemComponent.class)){
             var particleSystemComponent = entity.get(ecs.Components.ParticleSystemComponent.class);

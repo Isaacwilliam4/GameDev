@@ -1,22 +1,15 @@
-import ecs.Components.Movable;
-import ecs.Components.ParticleSystemComponent;
 import ecs.Entities.*;
 import ecs.Systems.*;
-import ecs.Systems.Countdown;
 import ecs.Systems.KeyboardInput;
 import edu.usu.graphics.*;
-import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameModel {
-    private final int GRID_SIZE = 50;
-    private final int OBSTACLE_COUNT = 15;
-
     private final List<Entity> removeThese = new ArrayList<>();
     private final List<Entity> addThese = new ArrayList<>();
-    private Entity snake;
+    private Entity player;
 
     private ecs.Systems.Renderer sysRenderer;
     private ecs.Systems.Collision sysCollision;
@@ -30,13 +23,10 @@ public class GameModel {
         this.graphics = graphics;
         var texSquare = new Texture("resources/images/square-outline.png");
 
-        sysRenderer = new Renderer(graphics, GRID_SIZE);
-        sysCollision = new Collision((Entity entity) -> {
-            // Remove the exist food
-            removeThese.add(entity);
-            // Generate another piece of food
-            addThese.add(createFood(texSquare));
-        });
+        sysRenderer = new Renderer(graphics);
+        // Remove the exist food
+        // Generate another piece of food
+        sysCollision = new Collision(removeThese::add);
         sysMovement = new Movement();
         sysKeyboardInput = new KeyboardInput(graphics.getWindow());
         sysParticleSystem = new ParticleSystem();
@@ -44,10 +34,10 @@ public class GameModel {
 //                graphics,
 //                (Entity entity) -> {
 //                    removeEntity(entity);
-//                    ecs.Entities.Snake.enableControls(snake);
-//                    var movable = snake.get(ecs.Components.Movable.class);
+//                    ecs.Entities.Snake.enableControls(player);
+//                    var movable = player.get(ecs.Components.Movable.class);
 //                    movable.facing = Movable.Direction.Up;
-//                    addEntity(snake);
+//                    addEntity(player);
 //                });
 
 //        initializeBorder(texSquare);
@@ -97,47 +87,15 @@ public class GameModel {
 //        sysCountdown.remove(entity.getId());
     }
 
-    private void initializeBorder(Texture square) {
-        for (int position = 0; position < GRID_SIZE; position++) {
-            var left = BorderBlock.create(square, 0, position);
-            addEntity(left);
-
-            var right = BorderBlock.create(square, GRID_SIZE - 1, position);
-            addEntity(right);
-
-            var top = BorderBlock.create(square, position, 0);
-            addEntity(top);
-
-            var bottom = BorderBlock.create(square, position, GRID_SIZE - 1);
-            addEntity(bottom);
-        }
-    }
-
-    private void initializeObstacles(Texture square) {
-        MyRandom rnd = new MyRandom();
-        int remaining = OBSTACLE_COUNT;
-
-        while (remaining > 0) {
-            // The 1 and -1 prevent adding obstacles to the border
-            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            int y = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            var proposed = Obstacle.create(square, x, y);
-            if (!sysCollision.collidesWithAny(proposed)) {
-                addEntity(proposed);
-                remaining--;
-            }
-        }
-    }
-
     private void initializeSnake(Texture square) {
 
         MyRandom rnd = new MyRandom();
         boolean done = false;
-        snake = Snake.create(square, 25, 25, graphics);
-        ecs.Entities.Snake.enableControls(snake);
-        addEntity(snake);
+        player = Player.create(0,0);
+        Player.enableControls(player);
+        addEntity(player);
 
-        sysParticleSystem.add(snake);
+        sysParticleSystem.add(player);
 
 
 //        while (!done) {
@@ -146,27 +104,11 @@ public class GameModel {
 //            var proposed = Snake.create(square, x, y);
 //            if (!sysCollision.collidesWithAny(proposed)) {
 //                addEntity(proposed);
-//                snake = proposed;
+//                player = proposed;
 //                done = true;
 //            }
 //        }
     }
 
-    private Entity createFood(Texture square) {
-        MyRandom rnd = new MyRandom();
-        boolean done = false;
-
-        Entity proposed = null;
-        while (!done) {
-            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            int y = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            proposed = Food.create(square, x, y);
-            if (!sysCollision.collidesWithAny(proposed)) {
-                done = true;
-            }
-        }
-
-        return proposed;
-    }
 
 }
