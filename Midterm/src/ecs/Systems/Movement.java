@@ -13,6 +13,9 @@ public class Movement extends System {
         super(ecs.Components.Movable.class, ecs.Components.Position.class);
     }
 
+    private final float MAX_LEFT = -0.71f;
+    private final float MAX_RIGHT = 0.71f;
+
     @Override
     public void update(double elapsedTime) {
         for (var entity : entities.values()) {
@@ -24,12 +27,6 @@ public class Movement extends System {
         var movable = entity.get(ecs.Components.Movable.class);
 
         switch (movable.pendingMove) {
-            case Movable.Direction.Up:
-                move(entity, 0, -movable.moveDist);
-                break;
-            case Movable.Direction.Down:
-                move(entity, 0, movable.moveDist);
-                break;
             case Movable.Direction.Left:
                 move(entity, -movable.moveDist, 0);
                 break;
@@ -44,12 +41,9 @@ public class Movement extends System {
         var positionComponent = entity.get(ecs.Components.Position.class);
         var position = positionComponent.position;
         positionComponent.previousPositions.add(position);
-        positionComponent.position = new Vector2f(position.x + xIncrement, position.y + yIncrement);
+        if (position.x + xIncrement > MAX_LEFT && position.x + xIncrement < MAX_RIGHT) {
+            positionComponent.position = new Vector2f(position.x + xIncrement, position.y + yIncrement);
 
-        if (entity.contains(ecs.Components.ParticleSystemComponent.class)){
-            var particleSystemComponent = entity.get(ecs.Components.ParticleSystemComponent.class);
-            particleSystemComponent.center.x = positionComponent.getX();
-            particleSystemComponent.center.y = positionComponent.getY();
         }
     }
 }
