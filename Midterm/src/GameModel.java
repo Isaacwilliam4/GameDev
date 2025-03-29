@@ -34,23 +34,23 @@ public class GameModel {
         });
         sysMovement = new Movement();
         sysKeyboardInput = new KeyboardInput(graphics.getWindow());
-        sysCountdown = new Countdown(
-                graphics,
-                (Entity entity) -> {
-                    removeEntity(entity);
-                    ecs.Entities.Snake.enableControls(snake);
-                    var movable = snake.get(ecs.Components.Movable.class);
-                    movable.facing = Movable.Direction.Up;
-                    addEntity(snake);
-                });
+//        sysCountdown = new Countdown(
+//                graphics,
+//                (Entity entity) -> {
+//                    removeEntity(entity);
+//                    ecs.Entities.Snake.enableControls(snake);
+//                    var movable = snake.get(ecs.Components.Movable.class);
+//                    movable.facing = Movable.Direction.Up;
+//                    addEntity(snake);
+//                });
 
-        initializeBorder(texSquare);
-        initializeObstacles(texSquare);
+//        initializeBorder(texSquare);
+//        initializeObstacles(texSquare);
         initializeSnake(texSquare);
-        addEntity(createFood(texSquare));
+//        addEntity(createFood(texSquare));
 
-        var countdown = ecs.Entities.Countdown.create(3);
-        addEntity(countdown);
+//        var countdown = ecs.Entities.Countdown.create(3);
+//        addEntity(countdown);
     }
 
     public void update(double elapsedTime) {
@@ -72,7 +72,7 @@ public class GameModel {
 
         // Because ECS framework, rendering is now part of the update
         sysRenderer.update(elapsedTime);
-        sysCountdown.update(elapsedTime);
+//        sysCountdown.update(elapsedTime);
     }
 
     private void addEntity(Entity entity) {
@@ -80,7 +80,7 @@ public class GameModel {
         sysMovement.add(entity);
         sysCollision.add(entity);
         sysRenderer.add(entity);
-        sysCountdown.add(entity);
+//        sysCountdown.add(entity);
     }
 
     private void removeEntity(Entity entity) {
@@ -88,7 +88,7 @@ public class GameModel {
         sysMovement.remove(entity.getId());
         sysCollision.remove(entity.getId());
         sysRenderer.remove(entity.getId());
-        sysCountdown.remove(entity.getId());
+//        sysCountdown.remove(entity.getId());
     }
 
     private void initializeBorder(Texture square) {
@@ -126,17 +126,20 @@ public class GameModel {
     private void initializeSnake(Texture square) {
         MyRandom rnd = new MyRandom();
         boolean done = false;
+        snake = Snake.create(square, 25, 25);
+        ecs.Entities.Snake.enableControls(snake);
+        addEntity(snake);
 
-        while (!done) {
-            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            int y = (int) rnd.nextRange(1, GRID_SIZE - 1);
-            var proposed = Snake.create(square, x, y);
-            if (!sysCollision.collidesWithAny(proposed)) {
-                addEntity(proposed);
-                snake = proposed;
-                done = true;
-            }
-        }
+//        while (!done) {
+//            int x = (int) rnd.nextRange(1, GRID_SIZE - 1);
+//            int y = (int) rnd.nextRange(1, GRID_SIZE - 1);
+//            var proposed = Snake.create(square, x, y);
+//            if (!sysCollision.collidesWithAny(proposed)) {
+//                addEntity(proposed);
+//                snake = proposed;
+//                done = true;
+//            }
+//        }
     }
 
     private Entity createFood(Texture square) {
