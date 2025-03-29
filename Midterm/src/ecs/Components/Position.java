@@ -11,11 +11,13 @@ public class Position extends Component {
     public Vector2f position;
     public float width;
     public float height;
+    public float rotation;
 
-    public Position(float x, float y) {
+    public Position(float x, float y, float rotation) {
         this.position = new Vector2f(x, y);
         this.width = width;
         this.height = height;
+        this.rotation = rotation;
     }
 
     public void undoMove(){

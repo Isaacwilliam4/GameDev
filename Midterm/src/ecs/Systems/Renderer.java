@@ -54,6 +54,6 @@ public class Renderer extends System {
         var position = entity.get(ecs.Components.Position.class);
         var area = new Rectangle(position.getX() - (appearance.width / 2), position.getY() - (appearance.height / 2), appearance.width, appearance.height);
         var center = new Vector2f(position.getX() + appearance.width / 2, position.getY() + appearance.height / 2);
-        graphics.draw(appearance.image, area, 0, center, Color.WHITE);
+        graphics.draw(appearance.image, area, position.rotation, center, Color.WHITE);
     }
 }

@@ -16,7 +16,7 @@ public class Player {
 
         var player = new Entity();
 
-        player.add(new ecs.Components.Position(x, y));
+        player.add(new ecs.Components.Position(x, y, 0));
         player.add(new ecs.Components.Collision());
         player.add(new ecs.Components.Movable(MOVE_INTERVAL));
         Texture tex = new Texture("resources/images/player.png");
