@@ -15,12 +15,10 @@ public class CarSystem extends System {
     private final float SPAWN_INTERVAL = 1.5f; // Time between car spawns
     private final float CAR_SPEED = 0.3f; // Speed of cars moving downward
     private final float CAR_START_Y = -1.0f; // Spawn at the top
-    private final float CAR_MIN_X = -0.7f; // Left side spawn
-    private final float CAR_MAX_X = 0.7f; // Right side spawn
     private final Random random = new Random();
     private List<Entity> entitiesToRemove = new ArrayList<>();
     private double timeSinceLastSpawn = 0.0;
-    private float[] CAR_X_VALS = new float[]{-.5f, -.25f, 0f, 0.25f, .5f};
+    private float[] CAR_X_VALS = new float[]{-.8f, -.47f, -.15f, 0.17f, .5f};
 
     public CarSystem() {
         super(Position.class);

@@ -16,12 +16,17 @@ public class Renderer extends System {
     private int roadBgNumVal = 0;
     private double curr_bg_interval = 0.0;
     private float bg_top = -1.75f;
+    private final Texture bgTex = new Texture("resources/images/road.png");
 
     public Renderer(Graphics2D graphics) {
         super(ecs.Components.Appearance.class,
                 ecs.Components.Position.class);
 
         this.graphics = graphics;
+    }
+
+    public void initialize() {
+
     }
 
     @Override
@@ -40,7 +45,6 @@ public class Renderer extends System {
 
         // Draw a blue background for the gameplay area
         Rectangle area = new Rectangle(-1f, bg_top, 2f, 2.5f);
-        Texture bgTex = new Texture("resources/images/road.png");
         graphics.draw(bgTex, area, Color.WHITE);
 
         // Draw each of the game entities!
