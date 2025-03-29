@@ -1,5 +1,6 @@
 package ecs.Systems;
 
+import ecs.Components.Movable;
 import ecs.Entities.CarEntity;
 import ecs.Components.Position;
 import ecs.Entities.Entity;
@@ -13,7 +14,7 @@ import java.util.Random;
 public class CarSystem extends System {
 
     private final float SPAWN_INTERVAL = 1.5f; // Time between car spawns
-    private final float CAR_SPEED = 0.3f; // Speed of cars moving downward
+//    private final float CAR_SPEED = 0.3f; // Speed of cars moving downward
     private final float CAR_START_Y = -1.0f; // Spawn at the top
     private final Random random = new Random();
     private List<Entity> entitiesToRemove = new ArrayList<>();
@@ -37,7 +38,8 @@ public class CarSystem extends System {
         // Move existing cars downward
         for (var entity : entities.values()) {
             var position = entity.get(Position.class);
-            var newPostion = new Position(position.getX(), position.getY() + CAR_SPEED * (float) elapsedTime, position.rotation);
+            var movable = entity.get(Movable.class);
+            var newPostion = new Position(position.getX(), position.getY() + movable.moveDist * (float) elapsedTime, position.rotation);
 
             entity.remove(Position.class);
             entity.add(newPostion);

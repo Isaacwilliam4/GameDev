@@ -13,8 +13,8 @@ public class Movable extends Component {
     public float moveDist;
     public Direction pendingMove;
 
-    public Movable(float moveDist) {
+    public Movable(float moveDist, Direction pendingMove) {
         this.moveDist = moveDist;
-        this.pendingMove = Direction.Stopped;
+        this.pendingMove = pendingMove;
     }
 }

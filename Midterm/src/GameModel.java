@@ -27,7 +27,7 @@ public class GameModel {
         sysRenderer = new Renderer(graphics);
         // Remove the exist food
         // Generate another piece of food
-        sysCollision = new Collision(removeThese::add);
+        sysCollision = new Collision();
         sysMovement = new Movement();
         sysKeyboardInput = new KeyboardInput(graphics.getWindow());
         sysParticleSystem = new ParticleSystem();
