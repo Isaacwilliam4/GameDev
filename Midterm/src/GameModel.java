@@ -64,6 +64,9 @@ public class GameModel {
             sysRenderer.add(value);
         }
 
+        removeThese.addAll(sysCarSystem.getEntitiesToRemove());
+        sysCarSystem.clearEntitiesToRemove();
+
         for (var entity : removeThese) {
             removeEntity(entity);
         }
@@ -79,6 +82,7 @@ public class GameModel {
 //        sysCountdown.update(elapsedTime);
     }
 
+
     private void addEntity(Entity entity) {
         sysKeyboardInput.add(entity);
         sysMovement.add(entity);
@@ -92,6 +96,7 @@ public class GameModel {
         sysMovement.remove(entity.getId());
         sysCollision.remove(entity.getId());
         sysRenderer.remove(entity.getId());
+        sysCarSystem.remove(entity.getId());
 //        sysCountdown.remove(entity.getId());
     }
 

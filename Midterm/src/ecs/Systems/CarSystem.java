@@ -20,6 +20,7 @@ public class CarSystem extends System {
     private final Random random = new Random();
     private List<Entity> entitiesToRemove = new ArrayList<>();
     private double timeSinceLastSpawn = 0.0;
+    private float[] CAR_X_VALS = new float[]{-.5f, -.25f, 0f, 0.25f, .5f};
 
     public CarSystem() {
         super(Position.class);
@@ -43,18 +44,27 @@ public class CarSystem extends System {
             entity.remove(Position.class);
             entity.add(newPostion);
             // Remove cars that go off-screen
-            if (position.getY() < -1.0f) {
+
+            if (position.getY() > 1.0f) {
                 entitiesToRemove.add(entity);
             }
         }
 
+    }
+
+    public void cleanUp(){
         for (var entity : entitiesToRemove) {
-            entities.remove(entity.getId());
+            entity.remove(Position.class);
         }
     }
 
+    public void clearEntitiesToRemove(){
+        entitiesToRemove.clear();
+    }
+
     private void spawnCar() {
-        float x = CAR_MIN_X + random.nextFloat() * (CAR_MAX_X - CAR_MIN_X); // Random X position
+        int idx = random.nextInt(CAR_X_VALS.length);
+        float x = CAR_X_VALS[idx];
         var car = CarEntity.create(x, CAR_START_Y);
         entities.put(car.getId(), car); // Add car to the system
     }
@@ -62,4 +72,10 @@ public class CarSystem extends System {
     public Map<Long, Entity> getCars(){
         return entities;
     }
+
+    public List<Entity> getEntitiesToRemove() {
+        return entitiesToRemove;
+    }
+
+
 }
