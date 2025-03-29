@@ -12,7 +12,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Player {
     public static Entity create(float x, float y) {
-        final float MOVE_INTERVAL = (float) 0.01;
+        final float MOVE_INTERVAL = (float) 0.02;
 
         var player = new Entity();
 
