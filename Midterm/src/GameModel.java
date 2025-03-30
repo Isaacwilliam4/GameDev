@@ -19,6 +19,10 @@ public class GameModel {
     private ecs.Systems.ParticleSystem sysParticleSystem;
     private ecs.Systems.CarSystem sysCarSystem;
     private Graphics2D graphics;
+    public boolean gameOver = false;
+    private Font font = new Font("resources/fonts/gunplay3d.otf", 48, false);
+    private int score = 0;
+
 
     public void initialize(Graphics2D graphics) {
         this.graphics = graphics;
@@ -55,10 +59,12 @@ public class GameModel {
         // Because ECS framework, input processing is now part of the update
         sysKeyboardInput.update(elapsedTime);
         // Now do the normal update
-        sysMovement.update(elapsedTime);
+        if (!gameOver) {
+            sysMovement.update(elapsedTime);
+            sysCarSystem.update(elapsedTime);
+        }
         sysCollision.update(elapsedTime);
         sysParticleSystem.update(elapsedTime);
-        sysCarSystem.update(elapsedTime);
 
         for (Entity value: sysCarSystem.getCars().values()){
             sysRenderer.add(value);
@@ -86,7 +92,37 @@ public class GameModel {
 //        sysCountdown.update(elapsedTime);
 
         cleanUp();
+
+        if (sysRenderer.endGame){
+            gameOver = true;
+        }
+
+        if (sysRenderer.endGameDone){
+            final float HEIGHT_MENU_ITEM = 0.075f;
+            float top = -0.25f;
+            drawText("Game Over, Your Score: " + score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, -0.5f, Color.WHITE);
+//            renderMenuItem(font, "Game Over, Your Score: " + score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, Color.WHITE);
+        }
     }
+
+    private float renderMenuItem(Font font, String text, float top, float height, Color color) {
+        float width = font.measureTextWidth(text, height);
+        graphics.drawTextByHeight(font, text, 0.0f - width / 2, top, height, color);
+
+        return top + height;
+    }
+
+    private void drawText(String text, float top, float height, float left, Color color) {
+        String[] stringArr = text.split("\n");
+        float width = font.measureTextWidth(text, height);
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = top + (idx * height);
+            graphics.drawTextByHeight(font, str, left, newTop, height, color);
+            idx++;
+        }
+    }
+
 
     private void cleanUp(){
         sysCarSystem.cleanUp();
@@ -101,6 +137,7 @@ public class GameModel {
         sysRenderer.add(entity);
 //        sysCountdown.add(entity);
     }
+
 
     private void removeEntity(Entity entity) {
         sysKeyboardInput.remove(entity.getId());

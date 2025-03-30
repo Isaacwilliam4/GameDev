@@ -34,11 +34,11 @@ public class Player {
                 0.01f,
                 0.01f,
                 0.1f,
-                1f,
+                0.5f,
                 0.5f,
                 3,
                 0.1,
-                1
+                0.5
         ));
 
         return player;

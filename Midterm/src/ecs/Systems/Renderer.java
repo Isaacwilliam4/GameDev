@@ -2,10 +2,7 @@ package ecs.Systems;
 
 import ecs.Components.Collision;
 import ecs.Components.ParticleSystemComponent;
-import edu.usu.graphics.Color;
-import edu.usu.graphics.Graphics2D;
-import edu.usu.graphics.Rectangle;
-import edu.usu.graphics.Texture;
+import edu.usu.graphics.*;
 import org.joml.Vector2f;
 
 public class Renderer extends System {
@@ -19,6 +16,10 @@ public class Renderer extends System {
     private double curr_bg_interval = 0.0;
     private float bg_top = -1.75f;
     private final Texture bgTex = new Texture("resources/images/road.png");
+    public boolean endGame = false;
+    public boolean endGameDone = false;
+    public double endGameTime = 3;
+    public double endGameCurrTime = 0;
 
     public Renderer(Graphics2D graphics) {
         super(ecs.Components.Appearance.class,
@@ -33,21 +34,29 @@ public class Renderer extends System {
 
     @Override
     public void update(double elapsedTime) {
-
-        curr_bg_interval += elapsedTime;
-        if (curr_bg_interval > ROAD_BG_INTERVAL) {
-            curr_bg_interval = 0.0;
-            roadBgNumVal += 1;
-            if (roadBgNumVal > ROAD_BG_INTERVAL_NUM) {
-                roadBgNumVal = 0;
-                bg_top = BG_TOP_RESET;
+        if (!endGame) {
+            curr_bg_interval += elapsedTime;
+            if (curr_bg_interval > ROAD_BG_INTERVAL) {
+                curr_bg_interval = 0.0;
+                roadBgNumVal += 1;
+                if (roadBgNumVal > ROAD_BG_INTERVAL_NUM) {
+                    roadBgNumVal = 0;
+                    bg_top = BG_TOP_RESET;
+                }
+                bg_top = bg_top - ROAD_BG_INTERVAL_MVM * bg_top;
             }
-            bg_top = bg_top - ROAD_BG_INTERVAL_MVM * bg_top;
         }
 
         // Draw a blue background for the gameplay area
         Rectangle area = new Rectangle(-1f, bg_top, 2f, 2.5f);
         graphics.draw(bgTex, area, Color.WHITE);
+
+        if (endGame){
+            endGameCurrTime += elapsedTime;
+            if (endGameCurrTime > endGameTime) {
+                endGameDone = true;
+            }
+        }
 
         // Draw each of the game entities!
         for (var entity : entities.values()) {
@@ -55,9 +64,11 @@ public class Renderer extends System {
         }
     }
 
+
     private void renderEntity(ecs.Entities.Entity entity) {
 
         if (entity.contains(ecs.Components.Collision.class) & entity.get(Collision.class).isCollided & entity.contains(ParticleSystemComponent.class)) {
+            endGame = true;
             var particleSystem = entity.get(ParticleSystemComponent.class);
             for (var particle : particleSystem.particles.values()) {
                 graphics.draw(particleSystem.texture, particle.area, particle.rotation, particle.center, Color.WHITE);
