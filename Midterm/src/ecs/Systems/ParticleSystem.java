@@ -44,10 +44,13 @@ public class ParticleSystem extends System {
             // Generate new particles
 //            systemComponent.timeToCreate -= elapsedTime;
 //            if (systemComponent.timeToCreate > 0) {
-            for (int i = 0; i < 8; i++) {
-                var particle = createParticle(systemComponent);
-                systemComponent.particles.put(particle.name, particle);
+            if (systemComponent.currentLifeTime < systemComponent.totalLifeTime) {
+                for (int i = 0; i < 8; i++) {
+                    var particle = createParticle(systemComponent);
+                    systemComponent.particles.put(particle.name, particle);
+                }
             }
+
 //            }
 //            render(systemComponent.graphics);
 
@@ -55,7 +58,7 @@ public class ParticleSystem extends System {
                 systemComponent.currentLifeTime += elapsedTime;
             }
 
-            if (systemComponent.currentLifeTime > systemComponent.totalLifeTime) {
+            if (systemComponent.currentLifeTime > systemComponent.totalLifeTime && systemComponent.particles.isEmpty()) {
                 entitiesToRemove.add(entity);
             }
         }

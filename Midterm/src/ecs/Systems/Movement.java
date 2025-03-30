@@ -43,7 +43,10 @@ public class Movement extends System {
         positionComponent.previousPositions.add(position);
         if (position.x + xIncrement > MAX_LEFT && position.x + xIncrement < MAX_RIGHT) {
             positionComponent.position = new Vector2f(position.x + xIncrement, position.y + yIncrement);
-
+            if (entity.contains(ecs.Components.ParticleSystemComponent.class)){
+                var particleSystemComponent = entity.get(ecs.Components.ParticleSystemComponent.class);
+                particleSystemComponent.center = positionComponent.position;
+            }
         }
     }
 }
