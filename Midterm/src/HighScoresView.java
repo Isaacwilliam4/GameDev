@@ -1,6 +1,10 @@
+import Models.HighScores;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Font;
 import edu.usu.graphics.Graphics2D;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -8,13 +12,15 @@ public class HighScoresView extends GameStateView {
 
     private KeyboardInput inputKeyboard;
     private GameStateEnum nextGameState = GameStateEnum.HighScores;
-    private Font font;
+    private Serializer serializer = new Serializer();
+    private HighScores highScores = new HighScores();
+    private Font font = new Font("resources/fonts/gunplay3d.otf", 48, false);
 
     @Override
     public void initialize(Graphics2D graphics) {
         super.initialize(graphics);
+        serializer.loadHighScores(this.highScores);
 
-        font = new Font("resources/fonts/Roboto-Regular.ttf", 48, false);
 
         inputKeyboard = new KeyboardInput(graphics.getWindow());
         // When ESC is pressed, set the appropriate new game state
@@ -26,6 +32,7 @@ public class HighScoresView extends GameStateView {
     @Override
     public void initializeSession() {
         nextGameState = GameStateEnum.HighScores;
+        serializer.loadHighScores(this.highScores);
     }
 
     @Override
@@ -41,10 +48,25 @@ public class HighScoresView extends GameStateView {
 
     @Override
     public void render(double elapsedTime) {
-        final String message = "These are the high scores";
-        final float height = 0.075f;
-        final float width = font.measureTextWidth(message, height);
+        StringBuilder highscores = new StringBuilder();
+        highscores.append("High Scores \n");
+        int maxscores = 0;
+        for (Integer s: this.highScores.getHighScores()){
+            if (maxscores < 5){
+                highscores.append(s).append("\n");
+                maxscores++;
+            }
+        }
+        drawTextWithLeftTopAndColor(highscores.toString(), -0.2f, -0.4f, 0.075f);
+    }
 
-        graphics.drawTextByHeight(font, message, 0.0f - width / 2, 0 - height / 2, height, Color.YELLOW);
+    private void drawTextWithLeftTopAndColor(String text, float left, float top, float textHeight){
+        String[] stringArr = text.split("\n");
+        int idx = 0;
+        for (String str: stringArr){
+            float newTop = top + (idx * textHeight);
+            graphics.drawTextByHeight(font, str, left, newTop, textHeight, Color.WHITE);
+            idx++;
+        }
     }
 }

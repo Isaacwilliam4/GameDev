@@ -1,3 +1,4 @@
+import Models.HighScores;
 import ecs.Entities.*;
 import ecs.Systems.*;
 import ecs.Systems.KeyboardInput;
@@ -22,6 +23,9 @@ public class GameModel {
     public boolean gameOver = false;
     private Font font = new Font("resources/fonts/gunplay3d.otf", 48, false);
     private int score = 0;
+    private Serializer serializer = new Serializer();
+    private HighScores highScores = new HighScores();
+    boolean finalScoreAdded = false;
 
 
     public void initialize(Graphics2D graphics) {
@@ -53,6 +57,8 @@ public class GameModel {
 
 //        var countdown = ecs.Entities.Countdown.create(3);
 //        addEntity(countdown);
+        serializer.loadHighScores(this.highScores);
+
     }
 
     public void update(double elapsedTime) {
@@ -102,6 +108,11 @@ public class GameModel {
             float top = -0.25f;
             drawText("Game Over, Your Score: " + sysCarSystem.score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, -0.5f, Color.WHITE);
 //            renderMenuItem(font, "Game Over, Your Score: " + score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, Color.WHITE);
+            if (!finalScoreAdded){
+                this.highScores.addToHighscores((int) sysCarSystem.score);
+                finalScoreAdded = true;
+                serializer.saveHighScores(this.highScores);
+            }
         }
         else{
             drawText("Score: " + sysCarSystem.score, -.45f, 0.075f, -0.12f, Color.WHITE);

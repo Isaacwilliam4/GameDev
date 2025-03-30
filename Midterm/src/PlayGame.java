@@ -1,7 +1,7 @@
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 
-public class SnakeGame {
+public class PlayGame {
 
     public static void main(String[] args) {
 
