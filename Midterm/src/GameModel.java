@@ -69,7 +69,7 @@ public class GameModel {
         }
 
         removeThese.addAll(sysCarSystem.getEntitiesToRemove());
-        sysCarSystem.clearEntitiesToRemove();
+        removeThese.addAll(sysParticleSystem.getEntitiesToRemove());
 
         for (var entity : removeThese) {
             removeEntity(entity);
@@ -84,6 +84,13 @@ public class GameModel {
         // Because ECS framework, rendering is now part of the update
         sysRenderer.update(elapsedTime);
 //        sysCountdown.update(elapsedTime);
+
+        cleanUp();
+    }
+
+    private void cleanUp(){
+        sysCarSystem.cleanUp();
+        sysParticleSystem.cleanUp();
     }
 
 

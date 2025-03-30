@@ -1,5 +1,6 @@
 package ecs.Systems;
 
+import ecs.Components.Collision;
 import ecs.Components.ParticleSystemComponent;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
@@ -55,15 +56,13 @@ public class Renderer extends System {
     }
 
     private void renderEntity(ecs.Entities.Entity entity) {
-        var collision = entity.get(ecs.Components.Collision.class);
 
-        if (collision != null) {
-            if (collision.isCollided){
-                var particleSystem = entity.get(ecs.Components.ParticleSystemComponent.class);
-                if (particleSystem != null) {
-                    var systemComponent = entity.get(ParticleSystemComponent.class);
-                    for (var particle : systemComponent.particles.values()) {
-                        graphics.draw(systemComponent.texture, particle.area, particle.rotation, particle.center, Color.WHITE);
+        if (entity.contains(ecs.Components.Collision.class)) {
+            if (entity.get(Collision.class).isCollided) {
+                if (entity.contains(ParticleSystemComponent.class)){
+                    var particleSystem = entity.get(ParticleSystemComponent.class);
+                    for (var particle : particleSystem.particles.values()) {
+                        graphics.draw(particleSystem.texture, particle.area, particle.rotation, particle.center, Color.WHITE);
                     }
                 }
             }

@@ -53,12 +53,6 @@ public class CarSystem extends System {
     }
 
     public void cleanUp(){
-        for (var entity : entitiesToRemove) {
-            entity.remove(Position.class);
-        }
-    }
-
-    public void clearEntitiesToRemove(){
         entitiesToRemove.clear();
     }
 

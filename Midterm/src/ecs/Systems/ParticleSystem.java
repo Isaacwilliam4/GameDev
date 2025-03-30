@@ -1,7 +1,9 @@
 package ecs.Systems;
 
+import ecs.Components.Collision;
 import ecs.Components.ParticleComponent;
 import ecs.Components.ParticleSystemComponent;
+import ecs.Entities.Entity;
 import edu.usu.graphics.Color;
 import edu.usu.graphics.Graphics2D;
 import edu.usu.graphics.Texture;
@@ -12,6 +14,8 @@ import java.util.List;
 
 public class ParticleSystem extends System {
 
+    public List<Entity> entitiesToRemove = new ArrayList<>();
+
     public ParticleSystem() {
         super(ParticleSystemComponent.class);
     }
@@ -20,6 +24,8 @@ public class ParticleSystem extends System {
     public void update(double elapsedTime) {
         for (var entity : entities.values()) {
             var systemComponent = entity.get(ParticleSystemComponent.class);
+            var collision = entity.get(Collision.class);
+
 
             // Remove expired particles
             List<Long> removeMe = new ArrayList<>();
@@ -44,7 +50,25 @@ public class ParticleSystem extends System {
             }
 //            }
 //            render(systemComponent.graphics);
+
+            if (collision.isCollided){
+                systemComponent.currentLifeTime += elapsedTime;
+            }
+
+            if (systemComponent.currentLifeTime > systemComponent.totalLifeTime) {
+                entitiesToRemove.add(entity);
+            }
         }
+
+
+    }
+
+    public void cleanUp(){
+        entitiesToRemove.clear();
+    }
+
+    public List<Entity> getEntitiesToRemove() {
+        return entitiesToRemove;
     }
 
     private void updateParticle(ParticleComponent particle, double elapsedTime) {

@@ -18,7 +18,7 @@ public class Player {
         var player = new Entity();
 
 
-        var position = new ecs.Components.Position(x, y, 0)
+        var position = new ecs.Components.Position(x, y, 0);
         player.add(position);
         player.add(new ecs.Components.Collision());
         player.add(new ecs.Components.Movable(MOVE_INTERVAL, Movable.Direction.Stopped));
