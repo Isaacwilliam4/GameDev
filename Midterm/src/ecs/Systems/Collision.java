@@ -20,13 +20,14 @@ public class Collision extends System {
      */
     @Override
     public void update(double elapsedTime) {
-        var movable = findMovable(entities);
 
         for (var entity : entities.values()) {
-            for (var entityMovable : movable) {
-                if (collides(entity, entityMovable)) {
-                    var collsionComponent = entity.get(ecs.Components.Collision.class);
-                    collsionComponent.isCollided = true;
+            for (var enitity2 : entities.values()) {
+                if (!entity.equals(enitity2)) {
+                    if (collides(entity, enitity2)) {
+                        var collsionComponent = entity.get(ecs.Components.Collision.class);
+                        collsionComponent.isCollided = true;
+                    }
                 }
             }
         }
@@ -89,18 +90,39 @@ public class Collision extends System {
     }
 
 
+
     private boolean isCollision(Vector2f aPos, Vector2f bPos, float aWidth, float aHeight, float bWidth, float bHeight) {
-        float aLeft = aPos.x - (aWidth);
-        float aRight = aPos.x + (aWidth);
-        float aTop = aPos.y - (aHeight);
-        float aBottom = aPos.y + (aHeight);
+        float aHalfWidth = aWidth / 2;
+        float aHalfHeight = aHeight / 2;
 
-        float bLeft = bPos.x - (bWidth);
-        float bRight = bPos.x + (bWidth);
-        float bTop = bPos.y - (bHeight);
-        float bBottom = bPos.y + (bHeight);
+        // Compute boundaries for rectangle A
+        float aLeft = aPos.x - aHalfWidth;
+        float aRight = aPos.x + aHalfWidth;
+        float aTop = aPos.y - aHalfHeight;  // Smaller y is the top
+        float aBottom = aPos.y + aHalfHeight; // Larger y is the bottom
 
-        return (aLeft < bRight && aRight > bLeft && aTop < bBottom && aBottom > bTop);
+        float bHalfWidth = bWidth / 2;
+        float bHalfHeight = bHeight / 2;
+
+        // Compute the four corners of rectangle B
+        Vector2f[] bCorners = new Vector2f[]{
+                new Vector2f(bPos.x - bHalfWidth, bPos.y - bHalfHeight), // Top-left
+                new Vector2f(bPos.x + bHalfWidth, bPos.y - bHalfHeight), // Top-right
+                new Vector2f(bPos.x - bHalfWidth, bPos.y + bHalfHeight), // Bottom-left
+                new Vector2f(bPos.x + bHalfWidth, bPos.y + bHalfHeight)  // Bottom-right
+        };
+
+        // Check if any corner of B is inside A
+        for (Vector2f corner : bCorners) {
+            if (corner.x >= aLeft && corner.x <= aRight && corner.y >= aTop && corner.y <= aBottom) {
+                return true; // Collision detected
+            }
+        }
+
+        return false; // No collision
     }
+
+
+
 
 }

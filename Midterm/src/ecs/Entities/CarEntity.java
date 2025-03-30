@@ -11,7 +11,7 @@ public class CarEntity{
 
         var texture = new Texture("resources/images/oncoming.png");
         car.add(new ecs.Components.Appearance(texture, Color.RED, .15f, .15f));
-        car.add(new ecs.Components.Position(x,y, (float) Math.PI));
+        car.add(new ecs.Components.Position(x,y, 0));
         car.add(new ecs.Components.Collision());
         car.add(new ecs.Components.Movable(0.3f, Movable.Direction.Down));
 

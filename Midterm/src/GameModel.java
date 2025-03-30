@@ -100,8 +100,11 @@ public class GameModel {
         if (sysRenderer.endGameDone){
             final float HEIGHT_MENU_ITEM = 0.075f;
             float top = -0.25f;
-            drawText("Game Over, Your Score: " + score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, -0.5f, Color.WHITE);
+            drawText("Game Over, Your Score: " + sysCarSystem.score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, -0.5f, Color.WHITE);
 //            renderMenuItem(font, "Game Over, Your Score: " + score + ", \n Press ESC to return to Main Menu", top, HEIGHT_MENU_ITEM, Color.WHITE);
+        }
+        else{
+            drawText("Score: " + sysCarSystem.score, -.45f, 0.075f, -0.12f, Color.WHITE);
         }
     }
 

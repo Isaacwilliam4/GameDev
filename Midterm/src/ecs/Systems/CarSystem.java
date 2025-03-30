@@ -20,6 +20,7 @@ public class CarSystem extends System {
     private List<Entity> entitiesToRemove = new ArrayList<>();
     private double timeSinceLastSpawn = 0.0;
     private float[] CAR_X_VALS = new float[]{-.8f, -.47f, -.15f, 0.17f, .5f};
+    public int score = 0;
 
     public CarSystem() {
         super(Position.class);
@@ -45,7 +46,8 @@ public class CarSystem extends System {
             entity.add(newPostion);
             // Remove cars that go off-screen
 
-            if (position.getY() > 1.0f) {
+            if (position.getY() > 0.5f) {
+                score += 1;
                 entitiesToRemove.add(entity);
             }
         }

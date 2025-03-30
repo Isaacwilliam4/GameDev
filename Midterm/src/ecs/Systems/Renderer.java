@@ -2,8 +2,11 @@ package ecs.Systems;
 
 import ecs.Components.Collision;
 import ecs.Components.ParticleSystemComponent;
+import ecs.Entities.Entity;
 import edu.usu.graphics.*;
 import org.joml.Vector2f;
+
+import java.awt.geom.Rectangle2D;
 
 public class Renderer extends System {
 
@@ -65,7 +68,7 @@ public class Renderer extends System {
     }
 
 
-    private void renderEntity(ecs.Entities.Entity entity) {
+    private void renderEntity(Entity entity) {
 
         if (entity.contains(ecs.Components.Collision.class) & entity.get(Collision.class).isCollided & entity.contains(ParticleSystemComponent.class)) {
             endGame = true;
@@ -83,4 +86,52 @@ public class Renderer extends System {
         }
 
     }
+
+//    public void renderEntity(Entity entity) {
+//        // Check if the entity contains a collision component and a particle system component
+//        if (entity.contains(ecs.Components.Collision.class) && entity.get(Collision.class).isCollided && entity.contains(ParticleSystemComponent.class)) {
+//            endGame = true;
+//            var particleSystem = entity.get(ParticleSystemComponent.class);
+//            // Render all particles in the particle system
+//            for (var particle : particleSystem.particles.values()) {
+//                graphics.draw(particleSystem.texture, particle.area, particle.rotation, particle.center, Color.WHITE);
+//            }
+//        } else {
+//            // Get the appearance and position components of the entity
+//            var appearance = entity.get(ecs.Components.Appearance.class);
+//            var position = entity.get(ecs.Components.Position.class);
+//
+//            // Calculate the main area for the entity (based on its width and height)
+//            var area = new Rectangle(position.getX() - (appearance.width / 2), position.getY() - (appearance.height / 2), appearance.width, appearance.height);
+//
+//            // Render the main image of the entity
+//            graphics.draw(appearance.image, area, position.rotation, new Vector2f(position.getX() + appearance.width / 2, position.getY() + appearance.height / 2), Color.WHITE);
+//
+//            // Calculate the half width and half height to get the corners
+//            float halfWidth = appearance.width / 2;
+//            float halfHeight = appearance.height / 2;
+//
+//            // Top-left corner (small red rectangle for debugging)
+//            float topLeftX = position.getX() - halfWidth;
+//            float topLeftY = position.getY() - halfHeight;
+//
+//            graphics.draw(new Rectangle(topLeftX, topLeftY, 0.01f, 0.01f, 1), Color.RED); // Small red rectangle at top-left corner
+//
+//            // Top-right corner (small green rectangle for debugging)
+//            float topRightX = position.getX() + halfWidth;
+//            float topRightY = position.getY() - halfHeight;
+//            graphics.draw(new Rectangle(topRightX, topRightY, 0.01f, 0.01f), Color.RED); // Small green rectangle at top-right corner
+//
+//            // Bottom-left corner (small blue rectangle for debugging)
+//            float bottomLeftX = position.getX() - halfWidth;
+//            float bottomLeftY = position.getY() + halfHeight;
+//            graphics.draw(new Rectangle(bottomLeftX, bottomLeftY, 0.01f, 0.01f), Color.RED); // Small blue rectangle at bottom-left corner
+//
+//            // Bottom-right corner (small yellow rectangle for debugging)
+//            float bottomRightX = position.getX() + halfWidth;
+//            float bottomRightY = position.getY() + halfHeight;
+//            graphics.draw(new Rectangle(bottomRightX, bottomRightY, 0.01f, 0.01f), Color.RED); // Small yellow rectangle at bottom-right corner
+//        }
+//    }
+
 }
