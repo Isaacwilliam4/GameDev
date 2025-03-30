@@ -19,7 +19,7 @@ public class CarSystem extends System {
     private final Random random = new Random();
     private List<Entity> entitiesToRemove = new ArrayList<>();
     private double timeSinceLastSpawn = 0.0;
-    private float[] CAR_X_VALS = new float[]{-.8f, -.47f, -.15f, 0.17f, .5f};
+    private float[] CAR_X_VALS = new float[]{-.65f, -.32f, 0f, 0.32f, .65f};
     public int score = 0;
 
     public CarSystem() {
